@@ -22,7 +22,7 @@ const AnimatedBalance = ({ value }) => {
 // --- Helper Icons ---
 const LoyaltyPointsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-300"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>;
 const BackIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>;
-const LogoutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>;
+const LogoutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>;
 
 
 // --- Player Rank Component ---
@@ -76,11 +76,6 @@ const premiumStyles = `
   * { font-family: 'Poppins', sans-serif; }
   body { user-select: none; overflow-x: hidden; }
   .main-bg { background-color: #020617; }
-  .ip-background {
-    background-image: url('ipbackground.png');
-    background-size: cover;
-    background-position: center;
-  }
   .tile { perspective: 1000px; cursor: pointer; }
   .tile-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
   .tile.flipped .tile-inner { transform: rotateY(180deg); }
@@ -738,7 +733,10 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
                 ))}
             </div>
             <div className="relative w-full h-96 bg-gradient-to-b from-slate-950 to-gray-950 rounded-3xl mb-6 flex items-center justify-center overflow-hidden border-4 border-orange-500/30 shadow-2xl">
-                <div className="absolute inset-0 ip-background opacity-50"></div>
+                <div 
+                    className="absolute inset-0 bg-cover bg-center opacity-50"
+                    style={{ backgroundImage: `url('ipbackground.png')` }}
+                ></div>
                 {gameState === 'betting' && (
                     <div className="absolute top-4 left-4 text-white font-bold glass-effect px-4 py-2 rounded-lg">
                         Next round in {countdown}s
@@ -1555,4 +1553,5 @@ export default function App() {
         </main>
     );
 }
+
 
