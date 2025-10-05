@@ -21,19 +21,53 @@ const AnimatedBalance = ({ value }) => {
 
 // --- Helper Icons ---
 const LoyaltyPointsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-300"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>;
-const CandyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="8"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>;
-const AppleIcon = ({ isBad = false }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={isBad ? "#991b1b" : "#16a34a"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 20.94c1.5 0 2.75-1.12 2.75-2.5S13.5 16 12 16s-2.75 1.12-2.75 2.5S10.5 20.94 12 20.94Z"></path>
-    <path d="M12 2C9.25 2 7 4.25 7 7s2.25 5 5 5 5-2.25 5-5S14.75 2 12 2Z"></path>
-    {isBad && <path d="m14 8-4 4m0-4 4 4" strokeWidth="3" stroke="white" />}
-  </svg>
-);
-const SlotIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8"></path><path d="M12 17v4"></path><circle cx="8" cy="10" r="2"></circle><circle cx="12" cy="10" r="2"></circle><circle cx="16" cy="10" r="2"></circle></svg>;
-const ScratchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path><circle cx="8" cy="15" r="1"></circle><circle cx="12" cy="15" r="1"></circle><circle cx="16" cy="15" r="1"></circle></svg>;
-const RocketIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>;
 const BackIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>;
 const LogoutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>;
+
+
+// --- Player Rank Component ---
+const RANKS = [
+    { name: 'Newbie', threshold: 0, icon: 'rank1.png' },
+    { name: 'Apprentice', threshold: 1000, icon: 'rank2.png' },
+    { name: 'Pro', threshold: 10000, icon: 'rank3.png' },
+    { name: 'Elite', threshold: 50000, icon: 'rank4.png' },
+    { name: 'Master', threshold: 100000, icon: 'rank5.png' },
+    { name: 'Legend', threshold: 500000, icon: 'rank6.png' },
+];
+
+const PlayerRank = ({ totalWagered }) => {
+    const currentRank = [...RANKS].reverse().find(rank => totalWagered >= rank.threshold) || RANKS[0];
+    const nextRank = RANKS.find(rank => totalWagered < rank.threshold);
+    
+    const progress = nextRank ? (totalWagered / nextRank.threshold) * 100 : 100;
+
+    return (
+        <div className="group relative">
+            <motion.img 
+                src={currentRank.icon} 
+                alt={currentRank.name} 
+                className="w-10 h-10 cursor-pointer"
+                whileHover={{ scale: 1.2, rotate: 10 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+            />
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-64 bg-slate-900/80 backdrop-blur-md border border-amber-300/30 rounded-lg p-4 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-[100]">
+                <h4 className="font-bold text-amber-300 text-lg">{currentRank.name}</h4>
+                <p className="text-xs text-slate-400">Unlocked at ${currentRank.threshold} wagered</p>
+                <p className="text-sm text-slate-300 mt-2">Total Wagered: ${totalWagered.toFixed(2)}</p>
+                {nextRank ? (
+                    <>
+                        <p className="text-xs text-slate-400 mt-2">Next: {nextRank.name} at ${nextRank.threshold} wagered</p>
+                        <div className="w-full bg-slate-700 rounded-full h-2 mt-2">
+                            <div className="bg-amber-400 h-2 rounded-full" style={{ width: `${progress}%` }}></div>
+                        </div>
+                    </>
+                ) : (
+                    <p className="text-sm text-amber-300 mt-2">You have reached the highest rank!</p>
+                )}
+            </div>
+        </div>
+    );
+};
 
 
 // --- Premium Animations & Styles (Updated Palette) ---
@@ -42,6 +76,17 @@ const premiumStyles = `
   * { font-family: 'Poppins', sans-serif; }
   body { user-select: none; overflow-x: hidden; }
   .main-bg { background-color: #020617; }
+  .ip-background {
+    background-image: url('ipbackground.png');
+    background-size: cover;
+    background-position: center;
+  }
+  .tile { perspective: 1000px; cursor: pointer; }
+  .tile-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+  .tile.flipped .tile-inner { transform: rotateY(180deg); }
+  .tile-face { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 1rem; overflow: hidden;}
+  .tile-front { background: linear-gradient(to bottom right, #22c55e, #16a34a); }
+  .tile-back { transform: rotateY(180deg); background-color: #1e293b; }
   @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
   @keyframes glow { 0%, 100% { filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.7)); } 50% { filter: drop-shadow(0 0 16px rgba(250, 204, 21, 1)); } }
   @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
@@ -280,12 +325,14 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
         reelRefs.current.forEach((reel, i) => {
             if (!reel) return;
             reel.style.transform = 'translateY(0)';
-            const animationDuration = SPIN_DURATION_BASE + i * SPIN_DURATION_INCREMENT;
+            const animationDuration = SPIN_DURATION_BASE + i * SPIN_DURATION_INCREMENT + Math.random() * 300;
             const finalPosition = -(newVisualReels[i].length - ROWS_COUNT) * SYMBOL_SIZE;
+            const easings = ['cubic-bezier(0.25, 1, 0.5, 1)', 'ease-out', 'cubic-bezier(0.34, 1.56, 0.64, 1)'];
+            const randomEasing = easings[Math.floor(Math.random() * easings.length)];
 
             reel.animate(
                 [ { transform: 'translateY(0px)' }, { transform: `translateY(${finalPosition}px)` } ],
-                { duration: animationDuration, easing: 'cubic-bezier(0.25, 1, 0.5, 1)', fill: 'forwards' }
+                { duration: animationDuration, easing: randomEasing, fill: 'forwards' }
             );
             setTimeout(() => playSound('playReelStop'), animationDuration - 100);
         });
@@ -327,7 +374,7 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
             logGameResult('Fruit Frenzy', wager, totalWinnings);
             setShowResult(true);
             setSpinning(false);
-        }, longestAnimation + 200);
+        }, longestAnimation + 500);
     };
 
     return (
@@ -454,6 +501,22 @@ const SugarScratch = ({ balance, setBalance, playSound, logGameResult, user, pro
         pNumbers.push(...winners.slice(0, numMatches));
         pNumbers.push(...losers.slice(0, 12 - numMatches));
 
+        // Apply near-miss logic to non-winning numbers
+        pNumbers.forEach((pNum, index) => {
+            if (!winners.includes(pNum)) {
+                if (Math.random() < 0.5) { // 50% chance for a near miss
+                    const randomWinner = winners[Math.floor(Math.random() * winners.length)];
+                    let nearMissNum = randomWinner + (Math.random() < 0.5 ? 1 : -1);
+                    if (nearMissNum < 1) nearMissNum = randomWinner + 1;
+                    if (nearMissNum > 50) nearMissNum = randomWinner - 1;
+                    
+                    if (!winners.includes(nearMissNum) && !pNumbers.includes(nearMissNum)) {
+                        pNumbers[index] = nearMissNum;
+                    }
+                }
+            }
+        });
+
         setWinningNumbers(winners);
         setPlayerNumbers(pNumbers.sort(() => 0.5 - Math.random()));
     };
@@ -560,8 +623,8 @@ const SugarScratch = ({ balance, setBalance, playSound, logGameResult, user, pro
 };
 
 
-// --- Game: Rocket Kebab ---
-const RocketKebab = ({ balance, setBalance, playSound, logGameResult, user, promptLogin }) => {
+// --- Game: Icicle Pop ---
+const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, promptLogin }) => {
     const [wager, setWager] = useState(10);
     const [gameState, setGameState] = useState('waiting');
     const [multiplier, setMultiplier] = useState(1.00);
@@ -614,7 +677,7 @@ const RocketKebab = ({ balance, setBalance, playSound, logGameResult, user, prom
         setBalance(prev => prev + winnings);
         setLastGameResult({ type: 'cashout', multiplier: currentMultiplier, winnings: winnings });
         setCashoutDisplay({ multiplier: currentMultiplier, height: (currentMultiplier - 1) * 25 });
-        logGameResult('Rocket Kebab', placedBet, winnings);
+        logGameResult('Icicle Pop', placedBet, winnings);
         setPlacedBet(null);
         if (currentMultiplier >= 10) playSound('playBigWin');
     }, [gameState, placedBet, setBalance, playSound, logGameResult]);
@@ -645,7 +708,7 @@ const RocketKebab = ({ balance, setBalance, playSound, logGameResult, user, prom
                     setLastGameResult({ type: 'crash', multiplier: finalCrashPoint });
                     playSound('playRocketExplode');
                     if(placedBet) {
-                       logGameResult('Rocket Kebab', placedBet, 0);
+                       logGameResult('Icicle Pop', placedBet, 0);
                     }
                     setPlacedBet(null);
                     setTimeout(() => setGameState('waiting'), 3000);
@@ -675,7 +738,7 @@ const RocketKebab = ({ balance, setBalance, playSound, logGameResult, user, prom
                 ))}
             </div>
             <div className="relative w-full h-96 bg-gradient-to-b from-slate-950 to-gray-950 rounded-3xl mb-6 flex items-center justify-center overflow-hidden border-4 border-orange-500/30 shadow-2xl">
-                <div className="absolute inset-0 bg-stars opacity-30"></div>
+                <div className="absolute inset-0 ip-background opacity-50"></div>
                 {gameState === 'betting' && (
                     <div className="absolute top-4 left-4 text-white font-bold glass-effect px-4 py-2 rounded-lg">
                         Next round in {countdown}s
@@ -683,7 +746,9 @@ const RocketKebab = ({ balance, setBalance, playSound, logGameResult, user, prom
                 )}
                 
                 <div className="absolute bottom-10 left-1/2" style={{ transform: `translate(-50%, -${rocketHeight}px) translateX(${rocketX}px) rotate(15deg)` }}>
-                    <div className={`text-7xl ${gameState === 'running' ? 'animate-pulse-glow' : ''}`}>🍢</div>
+                    <div className={`w-20 h-auto ${gameState === 'running' ? 'animate-pulse-glow' : ''}`}>
+                        <img src="rocket.png" alt="Icicle Pop" />
+                    </div>
                 </div>
 
                 {cashoutDisplay && (
@@ -696,7 +761,7 @@ const RocketKebab = ({ balance, setBalance, playSound, logGameResult, user, prom
                      {lastGameResult ? (
                         lastGameResult.type === 'crash' ? (
                             <div className="animate-shake">
-                                <div className="text-5xl sm:text-7xl font-black text-red-500 mb-3 animate-neon">CRASHED!</div>
+                                <div className="text-5xl sm:text-7xl font-black text-red-500 mb-3 animate-neon">POPPED!</div>
                                 <div className="text-2xl sm:text-4xl font-bold text-red-400">@{lastGameResult.multiplier.toFixed(2)}x</div>
                             </div>
                         ) : (
@@ -1025,7 +1090,6 @@ const SourApple = ({ balance, setBalance, playSound, logGameResult, user, prompt
     const [revealed, setRevealed] = useState(new Set());
     const [goodApplesFound, setGoodApplesFound] = useState(0);
     const [showConfetti, setShowConfetti] = useState(false);
-    const [lastClickedTile, setLastClickedTile] = useState(null);
 
     const factorial = useCallback((n) => (n <= 1 ? 1 : n * factorial(n - 1)), []);
     const combinations = useCallback((n, k) => (k < 0 || k > n) ? 0 : factorial(n) / (factorial(k) * factorial(n - k)), [factorial]);
@@ -1054,26 +1118,24 @@ const SourApple = ({ balance, setBalance, playSound, logGameResult, user, prompt
         setRevealed(new Set());
         setGoodApplesFound(0);
         setGameState('playing');
-        setLastClickedTile(null);
     };
 
     const handleTileClick = (index) => {
         if (gameState !== 'playing' || revealed.has(index)) return;
-        const newRevealed = new Set(revealed).add(index);
-        setRevealed(newRevealed);
-        setLastClickedTile(index);
+        
+        setRevealed(prev => new Set(prev).add(index));
         
         if (grid[index]) {
             playSound('playAppleBad');
             setGameState('busted');
             logGameResult('Sour Apple', wager, 0);
-            const allBadApples = new Set(newRevealed);
-            grid.forEach((isBad, idx) => {
-                if (isBad) {
-                    allBadApples.add(idx);
-                }
-            });
-            setTimeout(() => setRevealed(allBadApples), 500);
+            setTimeout(() => {
+                const allBadApples = new Set();
+                grid.forEach((isBad, idx) => {
+                    if (isBad) allBadApples.add(idx);
+                });
+                setRevealed(prev => new Set([...prev, ...allBadApples]));
+            }, 500);
         } else {
             playSound('playAppleGood');
             setGoodApplesFound(g => g + 1);
@@ -1114,14 +1176,17 @@ const SourApple = ({ balance, setBalance, playSound, logGameResult, user, prompt
                     </div>
                 )}
                 {Array.from({ length: GRID_SIZE*GRID_SIZE }).map((_, i) => (
-                    <button key={i} onClick={() => handleTileClick(i)} disabled={gameState !== 'playing' || revealed.has(i)} 
-                        className={`w-full h-full rounded-lg sm:rounded-2xl flex items-center justify-center text-5xl transition-all duration-300 shadow-xl ${
-                            revealed.has(i) 
-                                ? (grid[i] ? 'bg-red-800 scale-95' : 'bg-green-700/50 scale-100') 
-                                : 'bg-gradient-to-br from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 hover:scale-105 hover:shadow-green-500/50'
-                        } ${lastClickedTile === i && !grid[i] ? 'animate-bounce-in' : ''}`}>
-                        {revealed.has(i) && <div className={grid[i] ? 'animate-shake' : 'animate-bounce-in'}><AppleIcon isBad={grid[i]} /></div>}
-                    </button>
+                    <div key={i} 
+                        className={`tile ${revealed.has(i) ? 'flipped' : ''} ${gameState !== 'playing' || revealed.has(i) ? '' : 'cursor-pointer'}`} 
+                        onClick={() => handleTileClick(i)}
+                    >
+                        <div className="tile-inner">
+                            <div className="tile-face tile-front"></div>
+                            <div className="tile-face tile-back">
+                                <img src={grid[i] ? 'sour.png' : 'apples.png'} alt={grid[i] ? 'Sour Apple' : 'Good Apple'} className="w-10 h-10 sm:w-12 sm:h-12" />
+                            </div>
+                        </div>
+                    </div>
                 ))}
             </div>
             {isBetting ? (
@@ -1285,6 +1350,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
 // --- Main App Component ---
 export default function App() {
     const [balance, setBalance] = useState(0);
+    const [totalWagered, setTotalWagered] = useState(0); // New state for tracking wager
     const [activeGame, setActiveGame] = useState(null);
     const { isMuted, toggleMute, playSound, audioInitialized } = useGameSounds();
     const [showSelection, setShowSelection] = useState(true);
@@ -1301,6 +1367,7 @@ export default function App() {
                 const userData = JSON.parse(savedSession);
                 setUser(userData);
                 setBalance(userData.balance);
+                setTotalWagered(userData.totalWagered || 0);
             }
         } catch (error) {
             console.error("Could not load user session:", error);
@@ -1311,16 +1378,19 @@ export default function App() {
     useEffect(() => {
         if (user) {
             try {
-                const sessionData = JSON.stringify({ ...user, balance });
+                const sessionData = JSON.stringify({ ...user, balance, totalWagered });
                 localStorage.setItem(LOCAL_STORAGE_KEY, sessionData);
             } catch (error) {
                 console.error("Could not save user session:", error);
             }
         }
-    }, [user, balance]);
+    }, [user, balance, totalWagered]);
 
     const logGameResult = useCallback(async (game, bet, reward) => {
         if (!user) return; 
+
+        // Update total wagered locally
+        setTotalWagered(prev => prev + bet);
 
         try {
             await fetch(SCRIPT_URL, {
@@ -1354,11 +1424,13 @@ export default function App() {
     const handleAuthSuccess = (userData) => {
         setUser(userData);
         setBalance(userData.balance);
+        setTotalWagered(userData.totalWagered || 0); // Initialize totalWagered on login
     };
 
     const handleLogout = () => {
         setUser(null);
         setBalance(0);
+        setTotalWagered(0);
         try {
             localStorage.removeItem(LOCAL_STORAGE_KEY);
         } catch (error) {
@@ -1371,17 +1443,17 @@ export default function App() {
     const gameComponents = {
         slots: <FruitFrenzy balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
         scratch: <SugarScratch balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
-        rocket: <RocketKebab balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
+        rocket: <IciclePop balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
         candy: <CandyDrop balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
         apple: <SourApple balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
     };
 
     const navItems = [
-        { id: 'slots', label: 'Fruit Frenzy', icon: <SlotIcon />, color: 'from-violet-500 to-purple-600', desc: 'Classic slots with massive jackpots', gradient: 'from-violet-900 to-slate-950' },
-        { id: 'scratch', label: 'Sugar Scratch', icon: <ScratchIcon />, color: 'from-pink-500 to-rose-600', desc: 'Instant wins with custom bets', gradient: 'from-pink-900 to-slate-950' },
-        { id: 'rocket', label: 'Rocket Kebab', icon: <RocketIcon />, color: 'from-orange-500 to-amber-600', desc: 'Cash out before the crash', gradient: 'from-orange-900 to-slate-950' },
-        { id: 'candy', label: 'Candy Drop', icon: <CandyIcon />, color: 'from-blue-500 to-cyan-600', desc: 'Watch candy bounce to riches', gradient: 'from-blue-900 to-slate-950' },
-        { id: 'apple', label: 'Sour Apple', icon: <AppleIcon />, color: 'from-green-500 to-emerald-600', desc: 'Avoid the sour, find the sweet', gradient: 'from-green-900 to-slate-950' },
+        { id: 'slots', label: 'Fruit Frenzy', icon: 'slots.png', color: 'from-violet-500 to-purple-600', desc: 'Classic slots with massive jackpots', gradient: 'from-violet-900 to-slate-950' },
+        { id: 'scratch', label: 'Sugar Scratch', icon: 'scratch.png', color: 'from-pink-500 to-rose-600', desc: 'Instant wins with custom bets', gradient: 'from-pink-900 to-slate-950' },
+        { id: 'rocket', label: 'Icicle Pop', icon: 'rocket2.png', color: 'from-orange-500 to-amber-600', desc: 'Cash out before the crash', gradient: 'from-orange-900 to-slate-950' },
+        { id: 'candy', label: 'Candy Drop', icon: 'candy.png', color: 'from-blue-500 to-cyan-600', desc: 'Watch candy bounce to riches', gradient: 'from-blue-900 to-slate-950' },
+        { id: 'apple', label: 'Sour Apple', icon: 'apple.png', color: 'from-green-500 to-emerald-600', desc: 'Avoid the sour, find the sweet', gradient: 'from-green-900 to-slate-950' },
     ];
 
     const handleRefill = () => { if (balance <= 0) { playSound('playBigWin'); setBalance(1000); } };
@@ -1402,7 +1474,7 @@ export default function App() {
                 <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-rose-600 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
             </div>
 
-            <header className="w-full max-w-6xl mb-6 glass-effect p-4 rounded-2xl shadow-2xl z-10 animate-slide-up">
+            <header className="w-full max-w-6xl mb-6 glass-effect p-4 rounded-2xl shadow-2xl z-20 animate-slide-up">
                 <div className="flex justify-between items-center flex-wrap gap-4">
                     <div className="flex items-center gap-4">
                         <h1 className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-400 to-violet-400">Gourmet Fun</h1>
@@ -1415,10 +1487,10 @@ export default function App() {
                     <div className="flex items-center gap-3">
                          {user ? (
                              <>
+                                <PlayerRank totalWagered={totalWagered} />
                                 <div className="text-lg sm:text-2xl font-black bg-gradient-to-r from-slate-800 to-slate-900 px-4 py-2 sm:px-6 sm:py-3 rounded-full border-2 border-amber-300/30 shadow-inner flex items-center gap-2 tabular-nums">
                                      <LoyaltyPointsIcon /> <AnimatedBalance value={balance} />
                                 </div>
-                                <div className="hidden sm:block text-sm font-bold text-slate-300">Welcome, {user.username}!</div>
                                 <button onClick={handleLogout} className="text-slate-300 hover:text-white bg-slate-800/50 hover:bg-slate-700/50 p-2.5 rounded-full transition-all">
                                     <LogoutIcon />
                                 </button>
@@ -1444,24 +1516,23 @@ export default function App() {
                     <div className="text-center mb-8">
                         <h2 className="text-4xl sm:text-5xl font-black mb-3 text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-rose-300">Choose Your Game</h2>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {navItems.map((item, index) => (
-                            <button 
-                                key={item.id} 
+                            <button
+                                key={item.id}
                                 onClick={() => selectGame(item.id)}
-                                className="group relative glass-effect p-8 rounded-3xl hover:scale-105 transition-all duration-300 premium-shadow hover:border-2 hover:border-amber-300/50 animate-scale-in overflow-hidden"
+                                className="group relative rounded-3xl overflow-hidden aspect-[3/4] hover:scale-105 transition-transform duration-300 premium-shadow animate-scale-in"
                                 style={{animationDelay: `${index * 0.1}s`}}
                             >
-                                <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-20 transition-opacity duration-300" style={{background: `linear-gradient(to bottom right, ${item.gradient})`}}></div>
-                                <div className={`w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${item.color} flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300 shadow-xl`}>
-                                    <div className="scale-150">{item.icon}</div>
+                                <img src={item.icon} alt={item.label} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                                <div className="relative h-full flex flex-col justify-end p-8">
+                                    <h3 className="text-3xl font-black mb-1 text-white">{item.label}</h3>
+                                    <p className="text-slate-300 mb-4 text-sm">{item.desc}</p>
+                                    <div className={`self-start px-6 py-3 rounded-full bg-gradient-to-r ${item.color} text-white font-bold text-sm shadow-lg group-hover:shadow-2xl transition-all`}>
+                                        Play Now →
+                                    </div>
                                 </div>
-                                <h3 className="text-2xl font-black mb-2 text-white">{item.label}</h3>
-                                <p className="text-slate-400 mb-4">{item.desc}</p>
-                                <div className={`inline-block px-4 py-2 rounded-full bg-gradient-to-r ${item.color} text-white font-bold text-sm shadow-lg group-hover:shadow-2xl transition-all`}>
-                                    Play Now →
-                                </div>
-                                <div className="shimmer absolute inset-0 opacity-0 group-hover:opacity-100"></div>
                             </button>
                         ))}
                     </div>
