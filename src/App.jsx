@@ -27,12 +27,12 @@ const LogoutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" heig
 
 // --- Player Rank Component ---
 const RANKS = [
-    { name: 'Newbie', threshold: 0, icon: 'rank1.png' },
-    { name: 'Apprentice', threshold: 1000, icon: 'rank2.png' },
-    { name: 'Pro', threshold: 10000, icon: 'rank3.png' },
-    { name: 'Elite', threshold: 50000, icon: 'rank4.png' },
-    { name: 'Master', threshold: 100000, icon: 'rank5.png' },
-    { name: 'Legend', threshold: 500000, icon: 'rank6.png' },
+    { name: 'Newbie', threshold: 0, icon: '/rank1.png' },
+    { name: 'Apprentice', threshold: 1000, icon: '/rank2.png' },
+    { name: 'Pro', threshold: 10000, icon: '/rank3.png' },
+    { name: 'Elite', threshold: 50000, icon: '/rank4.png' },
+    { name: 'Master', threshold: 100000, icon: '/rank5.png' },
+    { name: 'Legend', threshold: 500000, icon: '/rank6.png' },
 ];
 
 const PlayerRank = ({ totalWagered }) => {
@@ -244,13 +244,13 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
     const [visualReelStrips, setVisualReelStrips] = useState(Array(REELS_COUNT).fill([]));
 
     const SYMBOLS = useMemo(() => ({
-        'CHERRY': { key: 'CHERRY', src: 'ff1.png' },
-        'LEMON': { key: 'LEMON', src: 'ff2.png' },
-        'ORANGE': { key: 'ORANGE', src: 'ff3.png' },
-        'GRAPE': { key: 'GRAPE', src: 'ff4.png' },
-        'DIAMOND': { key: 'DIAMOND', src: 'ff5.png' },
-        'SEVEN': { key: 'SEVEN', src: 'ff6.png' },
-        'SCATTER': { key: 'SCATTER', src: 'ff7.png' },
+        'CHERRY': { key: 'CHERRY', src: '/ff1.png' },
+        'LEMON': { key: 'LEMON', src: '/ff2.png' },
+        'ORANGE': { key: 'ORANGE', src: '/ff3.png' },
+        'GRAPE': { key: 'GRAPE', src: '/ff4.png' },
+        'DIAMOND': { key: 'DIAMOND', src: '/ff5.png' },
+        'SEVEN': { key: 'SEVEN', src: '/ff6.png' },
+        'SCATTER': { key: 'SCATTER', src: '/ff7.png' },
     }), []);
 
     const PAYTABLE = useMemo(() => ({
@@ -735,7 +735,7 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
             <div className="relative w-full h-96 bg-gradient-to-b from-slate-950 to-gray-950 rounded-3xl mb-6 flex items-center justify-center overflow-hidden border-4 border-orange-500/30 shadow-2xl">
                 <div 
                     className="absolute inset-0 bg-cover bg-center opacity-50"
-                    style={{ backgroundImage: `url('ipbackground.png')` }}
+                    style={{ backgroundImage: `url('/ipbackground.png')` }}
                 ></div>
                 {gameState === 'betting' && (
                     <div className="absolute top-4 left-4 text-white font-bold glass-effect px-4 py-2 rounded-lg">
@@ -745,7 +745,7 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
                 
                 <div className="absolute bottom-10 left-1/2" style={{ transform: `translate(-50%, -${rocketHeight}px) translateX(${rocketX}px) rotate(15deg)` }}>
                     <div className={`w-20 h-auto ${gameState === 'running' ? 'animate-pulse-glow' : ''}`}>
-                        <img src="rocket.png" alt="Icicle Pop" />
+                        <img src="/rocket.png" alt="Icicle Pop" />
                     </div>
                 </div>
 
@@ -1181,7 +1181,7 @@ const SourApple = ({ balance, setBalance, playSound, logGameResult, user, prompt
                         <div className="tile-inner">
                             <div className="tile-face tile-front"></div>
                             <div className="tile-face tile-back">
-                                <img src={grid[i] ? 'sour.png' : 'apples.png'} alt={grid[i] ? 'Sour Apple' : 'Good Apple'} className="w-10 h-10 sm:w-12 sm:h-12" />
+                                <img src={grid[i] ? '/sour.png' : '/apples.png'} alt={grid[i] ? 'Sour Apple' : 'Good Apple'} className="w-10 h-10 sm:w-12 sm:h-12" />
                             </div>
                         </div>
                     </div>
@@ -1447,11 +1447,11 @@ export default function App() {
     };
 
     const navItems = [
-        { id: 'slots', label: 'Fruit Frenzy', icon: 'slots.png', color: 'from-violet-500 to-purple-600', desc: 'Classic slots with massive jackpots', gradient: 'from-violet-900 to-slate-950' },
-        { id: 'scratch', label: 'Sugar Scratch', icon: 'scratch.png', color: 'from-pink-500 to-rose-600', desc: 'Instant wins with custom bets', gradient: 'from-pink-900 to-slate-950' },
-        { id: 'rocket', label: 'Icicle Pop', icon: 'rocket2.png', color: 'from-orange-500 to-amber-600', desc: 'Cash out before the crash', gradient: 'from-orange-900 to-slate-950' },
-        { id: 'candy', label: 'Candy Drop', icon: 'candy.png', color: 'from-blue-500 to-cyan-600', desc: 'Watch candy bounce to riches', gradient: 'from-blue-900 to-slate-950' },
-        { id: 'apple', label: 'Sour Apple', icon: 'apple.png', color: 'from-green-500 to-emerald-600', desc: 'Avoid the sour, find the sweet', gradient: 'from-green-900 to-slate-950' },
+        { id: 'slots', label: 'Fruit Frenzy', icon: '/slots.png', color: 'from-violet-500 to-purple-600', desc: 'Classic slots with massive jackpots', gradient: 'from-violet-900 to-slate-950' },
+        { id: 'scratch', label: 'Sugar Scratch', icon: '/scratch.png', color: 'from-pink-500 to-rose-600', desc: 'Instant wins with custom bets', gradient: 'from-pink-900 to-slate-950' },
+        { id: 'rocket', label: 'Icicle Pop', icon: '/rocket2.png', color: 'from-orange-500 to-amber-600', desc: 'Cash out before the crash', gradient: 'from-orange-900 to-slate-950' },
+        { id: 'candy', label: 'Candy Drop', icon: '/candy.png', color: 'from-blue-500 to-cyan-600', desc: 'Watch candy bounce to riches', gradient: 'from-blue-900 to-slate-950' },
+        { id: 'apple', label: 'Sour Apple', icon: '/apple.png', color: 'from-green-500 to-emerald-600', desc: 'Avoid the sour, find the sweet', gradient: 'from-green-900 to-slate-950' },
     ];
 
     const handleRefill = () => { if (balance <= 0) { playSound('playBigWin'); setBalance(1000); } };
