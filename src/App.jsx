@@ -337,14 +337,14 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
         'SCATTER': { key: 'SCATTER', src: '/ff7.png' },
     }), []);
 
-    // OPTIMIZED PAYTABLE: Higher frequency of small wins (3-of-a-kind), lower multipliers to maintain 90% RTP
+    // ADJUSTED PAYTABLE: Recalculated for 90% RTP with "match anywhere" logic (10% house edge)
     const PAYTABLE = useMemo(() => ({
-        [SYMBOLS.SEVEN.key]:   { 5: 500, 4: 25, 3: 3 }, 
-        [SYMBOLS.DIAMOND.key]: { 5: 20, 4: 3, 3: 0.8 }, 
-        [SYMBOLS.GRAPE.key]:   { 5: 8, 4: 1.5, 3: 0.6 }, 
-        [SYMBOLS.ORANGE.key]:  { 5: 5, 4: 1.2, 3: 0.5 }, 
-        [SYMBOLS.LEMON.key]:   { 5: 3, 4: 0.8, 3: 0.4 }, 
-        [SYMBOLS.CHERRY.key]:  { 5: 2, 4: 0.6, 3: 0.3 }, 
+        [SYMBOLS.SEVEN.key]:   { 5: 1540, 4: 77, 3: 9.2 },
+        [SYMBOLS.DIAMOND.key]: { 5: 61, 4: 9.2, 3: 2.6 },
+        [SYMBOLS.GRAPE.key]:   { 5: 26, 4: 4.6, 3: 1.85 },
+        [SYMBOLS.ORANGE.key]:  { 5: 15.4, 4: 3.6, 3: 1.55 },
+        [SYMBOLS.LEMON.key]:   { 5: 9.2, 4: 2.6, 3: 1.25 },
+        [SYMBOLS.CHERRY.key]:  { 5: 6.2, 4: 1.85, 3: 0.92 },
     }), [SYMBOLS]);
     
     // OPTIMIZED VIRTUAL_REELS: Heavily favor CHERRY and LEMON for frequent 3-of-a-kind wins
@@ -427,20 +427,40 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
             let totalWinnings = 0;
             const winningLineIndices = new Set();
             let nearMissDetected = false;
+
             paylines.forEach((line, lineIndex) => {
-                const lineSymbol = line[0];
-                if (!PAYTABLE[lineSymbol.key]) return;
-                let matchCount = 1;
-                for (let i = 1; i < line.length; i++) {
-                    if (line[i].key === lineSymbol.key) matchCount++;
-                    else break;
+                let bestWin = 0;
+
+                // Check for matches starting from each position (left to right only, as per slot tradition)
+                for (let startPos = 0; startPos < line.length; startPos++) {
+                    const symbol = line[startPos];
+                    if (!PAYTABLE[symbol.key]) continue;
+
+                    let matchCount = 1;
+                    // Count consecutive matches from this starting position
+                    for (let i = startPos + 1; i < line.length; i++) {
+                        if (line[i].key === symbol.key) {
+                            matchCount++;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    // Check if this match has a payout and if it's better than what we found
+                    if (PAYTABLE[symbol.key][matchCount]) {
+                        const winAmount = wager * PAYTABLE[symbol.key][matchCount];
+                        if (winAmount > bestWin) {
+                            bestWin = winAmount;
+                        }
+                    } else if (matchCount === 2 && !nearMissDetected) {
+                        nearMissDetected = true;
+                        playSound('playNearMiss');
+                    }
                 }
-                if (PAYTABLE[lineSymbol.key][matchCount]) {
-                    totalWinnings += wager * PAYTABLE[lineSymbol.key][matchCount];
+
+                if (bestWin > 0) {
+                    totalWinnings += bestWin;
                     winningLineIndices.add(lineIndex);
-                } else if (matchCount === 2 && !nearMissDetected) {
-                    nearMissDetected = true;
-                    playSound('playNearMiss');
                 }
             });
 
@@ -961,9 +981,9 @@ const CandyDrop = ({ balance, setBalance, playSound, logGameResult, user, prompt
     const ROWS = 13;
 
     const MULTIPLIERS = useMemo(() => ({
-        low:    [5.5, 3, 2, 1.2, 0.9, 0.6, 0.5, 0.5, 0.6, 0.9, 1.2, 2, 3, 5.5],
-        medium: [22, 9, 4, 2, 0.8, 0.4, 0.3, 0.3, 0.4, 0.8, 2, 4, 9, 22],
-        high:   [130, 35, 10, 1.5, 0, 0, 0, 0, 0, 0, 1.5, 10, 35, 130]
+        low:    [7.2, 3.9, 2.6, 1.6, 1.2, 0.8, 0.7, 0.7, 0.8, 1.2, 1.6, 2.6, 3.9, 7.2],
+        medium: [31, 12.6, 5.6, 2.8, 1.1, 0.6, 0.4, 0.4, 0.6, 1.1, 2.8, 5.6, 12.6, 31],
+        high:   [270, 72, 21, 3.1, 0, 0, 0, 0, 0, 0, 3.1, 21, 72, 270]
     }), []);
     
     const multipliers = MULTIPLIERS[risk];
@@ -1399,6 +1419,537 @@ const SourApple = ({ balance, setBalance, playSound, logGameResult, user, prompt
     );
 };
 
+// --- Game: Blackjack ---
+const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, promptLogin }) => {
+    const [wager, setWager] = useState(10);
+    const [gameState, setGameState] = useState('betting'); // betting, dealing, player, dealer, finished
+    const [playerHands, setPlayerHands] = useState([[]]); // Support for splits
+    const [activeHandIndex, setActiveHandIndex] = useState(0);
+    const [dealerHand, setDealerHand] = useState([]);
+    const [deck, setDeck] = useState([]);
+    const [result, setResult] = useState(null);
+    const [showConfetti, setShowConfetti] = useState(false);
+    const [dealingAnimation, setDealingAnimation] = useState(false);
+    const [isInfoOpen, setIsInfoOpen] = useState(false);
+    const [canDouble, setCanDouble] = useState(false);
+    const [canSplit, setCanSplit] = useState(false);
+
+    // Card suits and values
+    const suits = ['♠', '♥', '♦', '♣'];
+    const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+    // Create and shuffle deck
+    const createDeck = useCallback(() => {
+        const newDeck = [];
+        for (let i = 0; i < 6; i++) { // 6 deck shoe
+            suits.forEach(suit => {
+                ranks.forEach(rank => {
+                    newDeck.push({ rank, suit, id: `${suit}${rank}${i}` });
+                });
+            });
+        }
+        // Shuffle
+        for (let i = newDeck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
+        }
+        return newDeck;
+    }, []);
+
+    // Calculate hand value
+    const getHandValue = useCallback((hand) => {
+        if (!hand || hand.length === 0) return 0;
+        let value = 0;
+        let aces = 0;
+        hand.forEach(card => {
+            if (!card) return;
+            if (card.rank === 'A') {
+                aces++;
+                value += 11;
+            } else if (['K', 'Q', 'J'].includes(card.rank)) {
+                value += 10;
+            } else {
+                value += parseInt(card.rank);
+            }
+        });
+        while (value > 21 && aces > 0) {
+            value -= 10;
+            aces--;
+        }
+        return value;
+    }, []);
+
+    // Check for blackjack
+    const isBlackjack = useCallback((hand) => {
+        return hand.length === 2 && getHandValue(hand) === 21;
+    }, [getHandValue]);
+
+    // Start new game
+    const startGame = () => {
+        if (wager <= 0 || wager > balance) return;
+        playSound('playButtonClick');
+        setBalance(prev => prev - wager);
+        setGameState('dealing');
+        setDealingAnimation(true);
+        setResult(null);
+        setShowConfetti(false);
+
+        const newDeck = createDeck();
+        const playerCard1 = newDeck.pop();
+        const dealerCard1 = newDeck.pop();
+        const playerCard2 = newDeck.pop();
+        const dealerCard2 = newDeck.pop();
+
+        setDeck(newDeck);
+        setDealerHand([dealerCard1, dealerCard2]);
+
+        // Deal cards with animation delay
+        setTimeout(() => {
+            setPlayerHands([[playerCard1]]);
+            playSound('playReelStop');
+        }, 200);
+
+        setTimeout(() => {
+            setPlayerHands([[playerCard1, playerCard2]]);
+            playSound('playReelStop');
+            setDealingAnimation(false);
+
+            // Check for player blackjack
+            if (isBlackjack([playerCard1, playerCard2])) {
+                if (isBlackjack([dealerCard1, dealerCard2])) {
+                    handlePush();
+                } else {
+                    handleBlackjack();
+                }
+            } else if (isBlackjack([dealerCard1, dealerCard2])) {
+                handleDealerBlackjack();
+            } else {
+                setGameState('player');
+                setCanDouble(true);
+                setCanSplit(playerCard1.rank === playerCard2.rank && balance >= wager);
+            }
+        }, 800);
+    };
+
+    // Player hits
+    const hit = () => {
+        if (gameState !== 'player' || deck.length === 0) return;
+        playSound('playReelStop');
+
+        const newDeck = [...deck];
+        const newCard = newDeck.pop();
+        const newHands = [...playerHands];
+        newHands[activeHandIndex] = [...newHands[activeHandIndex], newCard];
+
+        setPlayerHands(newHands);
+        setDeck(newDeck);
+        setCanDouble(false);
+        setCanSplit(false);
+
+        const handValue = getHandValue(newHands[activeHandIndex]);
+        if (handValue > 21) {
+            // Bust
+            if (activeHandIndex < playerHands.length - 1) {
+                // Move to next hand
+                setActiveHandIndex(activeHandIndex + 1);
+                setCanDouble(newHands[activeHandIndex + 1].length === 2);
+            } else {
+                handlePlayerBust();
+            }
+        }
+    };
+
+    // Player stands
+    const stand = () => {
+        if (gameState !== 'player') return;
+        playSound('playButtonClick');
+        setCanDouble(false);
+        setCanSplit(false);
+
+        if (activeHandIndex < playerHands.length - 1) {
+            // Move to next hand
+            setActiveHandIndex(activeHandIndex + 1);
+            setCanDouble(playerHands[activeHandIndex + 1].length === 2);
+        } else {
+            // All hands complete, dealer plays
+            dealerPlay();
+        }
+    };
+
+    // Double down
+    const doubleDown = () => {
+        if (!canDouble || balance < wager) return;
+        playSound('playButtonClick');
+        setBalance(prev => prev - wager);
+
+        const newDeck = [...deck];
+        const newCard = newDeck.pop();
+        const newHands = [...playerHands];
+        newHands[activeHandIndex] = [...newHands[activeHandIndex], newCard];
+
+        setPlayerHands(newHands);
+        setDeck(newDeck);
+        setCanDouble(false);
+        setCanSplit(false);
+
+        const handValue = getHandValue(newHands[activeHandIndex]);
+        if (handValue > 21) {
+            if (activeHandIndex < playerHands.length - 1) {
+                setActiveHandIndex(activeHandIndex + 1);
+            } else {
+                handlePlayerBust();
+            }
+        } else {
+            if (activeHandIndex < playerHands.length - 1) {
+                setActiveHandIndex(activeHandIndex + 1);
+                setCanDouble(newHands[activeHandIndex + 1].length === 2);
+            } else {
+                dealerPlay();
+            }
+        }
+    };
+
+    // Split hand
+    const split = () => {
+        if (!canSplit || balance < wager) return;
+        playSound('playButtonClick');
+        setBalance(prev => prev - wager);
+
+        const newDeck = [...deck];
+        const hand = playerHands[activeHandIndex];
+        const card1 = newDeck.pop();
+        const card2 = newDeck.pop();
+
+        const newHands = [...playerHands];
+        newHands[activeHandIndex] = [hand[0], card1];
+        newHands.splice(activeHandIndex + 1, 0, [hand[1], card2]);
+
+        setPlayerHands(newHands);
+        setDeck(newDeck);
+        setCanSplit(false);
+        setCanDouble(true);
+    };
+
+    // Dealer plays
+    const dealerPlay = () => {
+        setGameState('dealer');
+        let currentDeck = [...deck];
+        let currentDealerHand = [...dealerHand];
+
+        const dealerDrawCard = () => {
+            setTimeout(() => {
+                const dealerValue = getHandValue(currentDealerHand);
+                if (dealerValue < 17) {
+                    const newCard = currentDeck.pop();
+                    currentDealerHand.push(newCard);
+                    setDealerHand([...currentDealerHand]);
+                    setDeck([...currentDeck]);
+                    playSound('playReelStop');
+                    dealerDrawCard();
+                } else {
+                    determineWinner(currentDealerHand);
+                }
+            }, 800);
+        };
+
+        dealerDrawCard();
+    };
+
+    // Determine winner (with 10% house commission on wins for 90% RTP)
+    const determineWinner = (finalDealerHand) => {
+        const dealerValue = getHandValue(finalDealerHand || dealerHand);
+        let totalWinnings = 0;
+        let wins = 0;
+        let losses = 0;
+        let pushes = 0;
+
+        playerHands.forEach(hand => {
+            const playerValue = getHandValue(hand);
+            if (playerValue > 21) {
+                losses++;
+            } else if (dealerValue > 21) {
+                // Win payout: 2x * 0.9 (10% house commission) = 1.8x net
+                totalWinnings += wager * 1.8;
+                wins++;
+            } else if (playerValue > dealerValue) {
+                // Win payout: 2x * 0.9 (10% house commission) = 1.8x net
+                totalWinnings += wager * 1.8;
+                wins++;
+            } else if (playerValue === dealerValue) {
+                totalWinnings += wager;
+                pushes++;
+            } else {
+                losses++;
+            }
+        });
+
+        setBalance(prev => prev + totalWinnings);
+
+        if (wins > losses) {
+            setResult({ type: 'win', amount: totalWinnings - (wager * playerHands.length) });
+            playSound('playWin', totalWinnings);
+            if (totalWinnings >= wager * 5) {
+                setShowConfetti(true);
+                playSound('playBigWin');
+            }
+        } else if (losses > wins) {
+            setResult({ type: 'loss' });
+            playSound('playCrash');
+        } else {
+            setResult({ type: 'push' });
+            playSound('playButtonClick');
+        }
+
+        logGameResult('Blackjack', wager * playerHands.length, totalWinnings);
+        setGameState('finished');
+        setTimeout(() => setShowConfetti(false), 3000);
+    };
+
+    // Special outcomes
+    const handleBlackjack = () => {
+        // Blackjack: 2.5x * 0.9 (10% commission) = 2.25x net
+        const winnings = wager * 2.25;
+        setBalance(prev => prev + winnings);
+        setResult({ type: 'blackjack', amount: winnings - wager });
+        playSound('playBigWin');
+        setShowConfetti(true);
+        logGameResult('Blackjack', wager, winnings);
+        setGameState('finished');
+        setTimeout(() => setShowConfetti(false), 3000);
+    };
+
+    const handleDealerBlackjack = () => {
+        setResult({ type: 'dealer_blackjack' });
+        playSound('playCrash');
+        logGameResult('Blackjack', wager, 0);
+        setGameState('finished');
+    };
+
+    const handlePush = () => {
+        setBalance(prev => prev + wager);
+        setResult({ type: 'push' });
+        playSound('playButtonClick');
+        logGameResult('Blackjack', wager, wager);
+        setGameState('finished');
+    };
+
+    const handlePlayerBust = () => {
+        const allBust = playerHands.every(hand => getHandValue(hand) > 21);
+        if (allBust) {
+            setResult({ type: 'bust' });
+            playSound('playCrash');
+            logGameResult('Blackjack', wager * playerHands.length, 0);
+            setGameState('finished');
+        } else {
+            dealerPlay();
+        }
+    };
+
+    // Render card (memoized to prevent re-renders)
+    const CardDisplay = useMemo(() => {
+        return ({ card, hidden = false, delay = 0 }) => (
+            <motion.div
+                initial={{ scale: 0, rotateY: 180 }}
+                animate={{ scale: 1, rotateY: 0 }}
+                transition={{ delay, type: 'spring', stiffness: 200 }}
+                className={`relative w-14 h-20 sm:w-16 sm:h-24 md:w-20 md:h-28 rounded-lg shadow-xl ${
+                    hidden ? 'bg-gradient-to-br from-red-900 to-red-950' : 'bg-white'
+                } flex items-center justify-center border-2 ${
+                    ['♥', '♦'].includes(card.suit) ? 'border-red-500' : 'border-slate-700'
+                }`}
+            >
+                {!hidden ? (
+                    <div className={`text-center font-black ${['♥', '♦'].includes(card.suit) ? 'text-red-500' : 'text-slate-900'}`}>
+                        <div className="text-xl sm:text-2xl md:text-3xl">{card.rank}</div>
+                        <div className="text-lg sm:text-xl md:text-2xl">{card.suit}</div>
+                    </div>
+                ) : (
+                    <div className="text-4xl">🎴</div>
+                )}
+            </motion.div>
+        );
+    }, []);
+
+    return (
+        <div className="flex flex-col items-center p-3 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-3xl mx-auto border-2 border-red-500/30 premium-shadow animate-scale-in relative">
+            <InfoIcon onClick={() => setIsInfoOpen(true)} />
+            <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Blackjack Info">
+                <h3 className="font-bold text-lg sm:text-xl text-white">How to Play</h3>
+                <p className="text-sm sm:text-base">Get as close to 21 as possible without going over. Face cards are worth 10, Aces are worth 1 or 11. Beat the dealer to win!</p>
+                <h3 className="font-bold text-lg sm:text-xl text-white mt-4">Actions</h3>
+                <ul className="list-disc list-inside space-y-1 text-sm sm:text-base">
+                    <li><span className="font-bold text-amber-300">HIT:</span> Draw another card</li>
+                    <li><span className="font-bold text-amber-300">STAND:</span> Keep your current hand</li>
+                    <li><span className="font-bold text-amber-300">DOUBLE:</span> Double your bet and draw one card</li>
+                    <li><span className="font-bold text-amber-300">SPLIT:</span> Split matching cards into two hands</li>
+                </ul>
+                <h3 className="font-bold text-lg sm:text-xl text-white mt-4">Payouts (10% house commission)</h3>
+                <ul className="list-disc list-inside space-y-1 text-sm sm:text-base">
+                    <li>Blackjack: <span className="font-bold text-amber-300">2.25x</span> (3:2 minus 10% commission)</li>
+                    <li>Win: <span className="font-bold text-amber-300">1.8x</span> (1:1 minus 10% commission)</li>
+                    <li>Push: <span className="font-bold text-amber-300">1x</span> (tie, no commission)</li>
+                </ul>
+                <div className="mt-3 p-2 bg-red-500/20 rounded-lg border border-red-500/30">
+                    <p className="text-xs sm:text-sm text-center text-red-200">💡 All wins subject to 10% house commission</p>
+                </div>
+            </InfoModal>
+            <Confetti show={showConfetti} />
+
+            {/* Dealer Hand */}
+            {dealerHand.length > 0 && (
+                <div className="w-full glass-effect p-3 sm:p-4 rounded-xl sm:rounded-2xl mb-4 sm:mb-6">
+                    <div className="text-center mb-2 sm:mb-3">
+                        <h3 className="text-sm sm:text-base font-bold text-slate-300">Dealer's Hand</h3>
+                        <div className="text-lg sm:text-2xl font-black text-red-400">
+                            {gameState === 'player' || gameState === 'dealing' || gameState === 'betting'
+                                ? `${getHandValue([dealerHand[0]])}${dealerHand.length > 1 ? ' + ?' : ''}`
+                                : getHandValue(dealerHand)}
+                        </div>
+                    </div>
+                    <div className="flex justify-center gap-1 sm:gap-2 flex-wrap">
+                        {dealerHand.map((card, i) => (
+                            <CardDisplay
+                                key={card.id}
+                                card={card}
+                                hidden={i === 1 && (gameState === 'player' || gameState === 'dealing' || gameState === 'betting')}
+                                delay={i * 0.2}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Player Hands */}
+            {playerHands.length > 0 && playerHands[0].length > 0 && (
+                <div className="w-full glass-effect p-3 sm:p-4 rounded-xl sm:rounded-2xl mb-4 sm:mb-6">
+                    {playerHands.map((hand, handIndex) => (
+                        <div
+                            key={handIndex}
+                            className={`mb-4 last:mb-0 ${
+                                handIndex === activeHandIndex && gameState === 'player'
+                                    ? 'ring-2 ring-amber-400 rounded-lg p-2 sm:p-3'
+                                    : ''
+                            }`}
+                        >
+                            <div className="text-center mb-2 sm:mb-3">
+                                <h3 className="text-sm sm:text-base font-bold text-slate-300">
+                                    {playerHands.length > 1 ? `Hand ${handIndex + 1}` : "Your Hand"}
+                                    {handIndex === activeHandIndex && gameState === 'player' && ' ⬅'}
+                                </h3>
+                                <div className="text-lg sm:text-2xl font-black text-green-400">
+                                    {getHandValue(hand)}
+                                    {getHandValue(hand) === 21 && hand.length === 2 && ' - Blackjack! 🎉'}
+                                    {getHandValue(hand) > 21 && ' - Bust! 💥'}
+                                </div>
+                            </div>
+                            <div className="flex justify-center gap-1 sm:gap-2 flex-wrap">
+                                {hand.map((card, i) => (
+                                    <CardDisplay key={card.id} card={card} delay={i * 0.2 + 0.4} />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Result Display */}
+            {result && (
+                <motion.div
+                    initial={{ scale: 0, y: -50 }}
+                    animate={{ scale: 1, y: 0 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                    className={`w-full text-center p-4 sm:p-6 rounded-xl sm:rounded-2xl mb-4 sm:mb-6 font-black text-xl sm:text-3xl ${
+                        result.type === 'blackjack' || result.type === 'win'
+                            ? 'bg-green-500/20 text-green-300 border-2 border-green-500'
+                            : result.type === 'push'
+                            ? 'bg-amber-500/20 text-amber-300 border-2 border-amber-500'
+                            : 'bg-red-500/20 text-red-300 border-2 border-red-500'
+                    }`}
+                >
+                    {result.type === 'blackjack' && `BLACKJACK! +$${result.amount.toFixed(2)} 🎉`}
+                    {result.type === 'win' && `YOU WIN! +$${result.amount.toFixed(2)} 🎊`}
+                    {result.type === 'loss' && 'DEALER WINS 😔'}
+                    {result.type === 'push' && 'PUSH - TIE! 🤝'}
+                    {result.type === 'bust' && 'BUST! 💥'}
+                    {result.type === 'dealer_blackjack' && 'DEALER BLACKJACK! 🎴'}
+                </motion.div>
+            )}
+
+            {/* Controls */}
+            <div className="w-full">
+                {gameState === 'betting' && (
+                    <>
+                        <label className="text-xs sm:text-sm text-slate-300 mb-2 block font-bold">Bet Amount</label>
+                        <input
+                            type="number"
+                            value={wager}
+                            onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))}
+                            disabled={!user}
+                            className="w-full bg-slate-800 p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 border-red-500/40 text-lg sm:text-2xl font-black shadow-inner mb-2 sm:mb-3 focus:border-red-400 focus:outline-none transition-all"
+                        />
+                        <QuickBetButtons wager={wager} setWager={setWager} balance={balance} disabled={!user} />
+                    </>
+                )}
+
+                {gameState === 'player' && (
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3">
+                        <motion.button
+                            onClick={hit}
+                            whileTap={{ scale: 0.95 }}
+                            className="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-3 sm:p-4 rounded-lg sm:rounded-xl text-sm sm:text-lg font-black shadow-xl touch-manipulation active:scale-95"
+                        >
+                            HIT 🎯
+                        </motion.button>
+                        <motion.button
+                            onClick={stand}
+                            whileTap={{ scale: 0.95 }}
+                            className="bg-gradient-to-r from-red-600 to-red-500 text-white p-3 sm:p-4 rounded-lg sm:rounded-xl text-sm sm:text-lg font-black shadow-xl touch-manipulation active:scale-95"
+                        >
+                            STAND ✋
+                        </motion.button>
+                        <motion.button
+                            onClick={doubleDown}
+                            disabled={!canDouble || balance < wager}
+                            whileTap={{ scale: canDouble && balance >= wager ? 0.95 : 1 }}
+                            className="bg-gradient-to-r from-purple-600 to-purple-500 text-white p-3 sm:p-4 rounded-lg sm:rounded-xl text-sm sm:text-lg font-black shadow-xl disabled:opacity-30 touch-manipulation active:scale-95"
+                        >
+                            DOUBLE 2x
+                        </motion.button>
+                        <motion.button
+                            onClick={split}
+                            disabled={!canSplit || balance < wager}
+                            whileTap={{ scale: canSplit && balance >= wager ? 0.95 : 1 }}
+                            className="bg-gradient-to-r from-amber-600 to-amber-500 text-white p-3 sm:p-4 rounded-lg sm:rounded-xl text-sm sm:text-lg font-black shadow-xl disabled:opacity-30 touch-manipulation active:scale-95"
+                        >
+                            SPLIT ✂️
+                        </motion.button>
+                    </div>
+                )}
+
+                {user ? (
+                    (gameState === 'betting' || gameState === 'finished') && (
+                        <motion.button
+                            onClick={startGame}
+                            disabled={dealingAnimation || wager <= 0 || wager > balance}
+                            whileTap={{ scale: dealingAnimation ? 1 : 0.95 }}
+                            className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl disabled:opacity-50 transition-all touch-manipulation active:scale-95"
+                        >
+                            {dealingAnimation ? <span className="animate-pulse">DEALING...</span> : gameState === 'finished' ? 'PLAY AGAIN 🃏' : 'DEAL CARDS 🃏'}
+                        </motion.button>
+                    )
+                ) : (
+                    <button
+                        onClick={promptLogin}
+                        className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all touch-manipulation"
+                    >
+                        Sign In to Play
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
+
 // --- Authentication Modal (Mobile Optimized) ---
 const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
     
@@ -1612,6 +2163,7 @@ export default function App() {
         rocket: <IciclePop balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
         candy: <CandyDrop balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
         apple: <SourApple balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
+        blackjack: <Blackjack balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
     };
 
     const navItems = [
@@ -1620,6 +2172,7 @@ export default function App() {
         { id: 'rocket', label: 'Icicle Pop', icon: '/rocket2.png', color: 'from-orange-500 to-amber-600', desc: 'Cash out before the crash' },
         { id: 'candy', label: 'Candy Drop', icon: '/candy.png', color: 'from-blue-500 to-cyan-600', desc: 'Watch candy bounce to riches' },
         { id: 'apple', label: 'Sour Apple', icon: '/apple.png', color: 'from-green-500 to-emerald-600', desc: 'Avoid the sour, find the sweet' },
+        { id: 'blackjack', label: 'Blackjack', icon: '/blackjack.jpg', color: 'from-red-500 to-rose-600', desc: 'Beat the dealer to 21' },
     ];
 
 
