@@ -24,7 +24,7 @@ const LoyaltyPointsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="2
 const BackIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>;
 const LogoutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>;
 const InfoIcon = ({ onClick }) => (
-    <button onClick={onClick} className="absolute top-4 right-4 z-30 text-white bg-black/40 rounded-full p-2 hover:bg-black/60 transition-colors backdrop-blur-sm">
+    <button onClick={onClick} className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 text-white bg-black/40 rounded-full p-2 hover:bg-black/60 transition-colors backdrop-blur-sm touch-manipulation active:scale-90">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
     </button>
 );
@@ -39,21 +39,27 @@ const InfoModal = ({ isOpen, onClose, title, children }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-black/80 z-40 flex items-center justify-center p-4"
+                className="absolute inset-0 bg-black/85 z-40 flex items-center justify-center p-3 sm:p-4"
                 onClick={onClose}
             >
                 <motion.div
-                    initial={{ y: -50, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 50, opacity: 0 }}
-                    className="glass-effect rounded-2xl p-6 border-2 border-amber-300/50 w-full max-w-md"
+                    initial={{ y: -50, opacity: 0, scale: 0.9 }}
+                    animate={{ y: 0, opacity: 1, scale: 1 }}
+                    exit={{ y: 50, opacity: 0, scale: 0.9 }}
+                    className="glass-effect rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-amber-300/50 w-full max-w-md shadow-2xl"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <h2 className="text-2xl sm:text-3xl font-black text-center mb-4 text-amber-300">{title}</h2>
-                    <div className="text-slate-300 space-y-4 max-h-[60vh] overflow-y-auto pr-2 text-sm sm:text-base">
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-center mb-3 sm:mb-4 text-amber-300">{title}</h2>
+                    <div className="text-slate-300 space-y-3 sm:space-y-4 max-h-[60vh] overflow-y-auto pr-2 text-xs sm:text-sm md:text-base">
                         {children}
                     </div>
-                     <button onClick={onClose} className="w-full mt-6 bg-amber-500 text-slate-900 p-3 rounded-xl font-bold">Close</button>
+                     <motion.button 
+                        onClick={onClose}
+                        whileTap={{ scale: 0.95 }}
+                        className="w-full mt-4 sm:mt-6 bg-amber-500 text-slate-900 p-2.5 sm:p-3 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base touch-manipulation active:scale-95"
+                    >
+                        Close
+                    </motion.button>
                 </motion.div>
             </motion.div>
         </AnimatePresence>
@@ -82,7 +88,7 @@ const PlayerRank = ({ totalWagered }) => {
             <motion.img 
                 src={currentRank.icon} 
                 alt={currentRank.name} 
-                className="w-10 h-10 cursor-pointer"
+                className="w-8 h-8 sm:w-10 sm:h-10 cursor-pointer"
                 whileHover={{ scale: 1.2, rotate: 10 }}
                 transition={{ type: 'spring', stiffness: 300 }}
             />
@@ -106,14 +112,23 @@ const PlayerRank = ({ totalWagered }) => {
 };
 
 
-// --- Premium Animations & Styles (Updated Palette) ---
+// --- Premium Animations & Styles (Mobile-Optimized) ---
 const premiumStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap');
-  * { font-family: 'Poppins', sans-serif; }
-  body { user-select: none; overflow-x: hidden; }
+  * { 
+    font-family: 'Poppins', sans-serif; 
+    -webkit-tap-highlight-color: transparent;
+  }
+  body { 
+    user-select: none; 
+    overflow-x: hidden; 
+    touch-action: manipulation;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
   .main-bg { background-color: #020617; }
   .tile { perspective: 1000px; cursor: pointer; }
-  .tile-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+  .tile-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); transform-style: preserve-3d; }
   .tile.flipped .tile-inner { transform: rotateY(180deg); }
   .tile-face { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 1rem; overflow: hidden;}
   .tile-front { background: linear-gradient(to bottom right, #22c55e, #16a34a); }
@@ -138,7 +153,12 @@ const premiumStyles = `
   @keyframes sparkle { 0%, 100% { opacity: 0; transform: scale(0); } 50% { opacity: 1; transform: scale(1); } }
   .shimmer { background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%); background-size: 1000px 100%; animation: shimmer 2s infinite; }
   .premium-shadow { box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 80px rgba(139, 92, 246, 0.2); }
-  .glass-effect { background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+  .glass-effect { 
+    background: rgba(15, 23, 42, 0.6); 
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+  }
   .animate-float { animation: float 4s ease-in-out infinite; }
   .animate-glow { animation: glow 2.5s ease-in-out infinite; }
   .animate-pulse-glow { animation: pulse-glow 1s ease-in-out infinite; }
@@ -146,6 +166,19 @@ const premiumStyles = `
   .animate-scale-in { animation: scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
   .animate-neon { animation: neon-pulse 2s ease-in-out infinite; }
   .candy-trail { animation: glow 1.5s ease-in-out infinite; }
+  
+  /* Mobile-specific optimizations */
+  @media (max-width: 640px) {
+    .main-bg { padding: 0.75rem; }
+    .mobile-compact { padding: 1rem !important; }
+    .mobile-text-lg { font-size: 1.125rem !important; }
+    .mobile-text-xl { font-size: 1.25rem !important; }
+    .mobile-text-2xl { font-size: 1.5rem !important; }
+    .mobile-text-3xl { font-size: 1.875rem !important; }
+    .mobile-gap { gap: 0.5rem !important; }
+    .mobile-p-3 { padding: 0.75rem !important; }
+    .mobile-p-4 { padding: 1rem !important; }
+  }
 `;
 
 // --- Confetti Component with Enhanced Particles ---
@@ -243,31 +276,46 @@ const useGameSounds = () => {
     return { isMuted, toggleMute, playSound, audioInitialized };
 };
 
-// --- Quick Bet Buttons Component with Enhanced Styling ---
+// --- Quick Bet Buttons Component with Mobile Optimization ---
 const QuickBetButtons = ({ wager, setWager, balance, disabled }) => (
-    <div className="flex gap-2 mt-3">
-        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setWager(Math.max(1, Math.floor(wager / 2)))} disabled={disabled} 
-            className="flex-1 text-sm bg-slate-700/50 hover:bg-slate-600/50 px-4 py-3 rounded-xl font-black disabled:opacity-30 transition-all text-white shadow-lg disabled:hover:scale-100">
+    <div className="flex gap-2 mt-2 sm:mt-3">
+        <motion.button 
+            whileHover={{ scale: disabled ? 1 : 1.02 }} 
+            whileTap={{ scale: disabled ? 1 : 0.95 }} 
+            onClick={() => setWager(Math.max(1, Math.floor(wager / 2)))} 
+            disabled={disabled} 
+            className="flex-1 text-xs sm:text-sm bg-slate-700/50 hover:bg-slate-600/50 px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl font-black disabled:opacity-30 transition-all text-white shadow-lg disabled:hover:scale-100 touch-manipulation active:scale-90"
+        >
             ½ HALF
         </motion.button>
-        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setWager(Math.min(balance, wager * 2))} disabled={disabled} 
-            className="flex-1 text-sm bg-slate-700/50 hover:bg-slate-600/50 px-4 py-3 rounded-xl font-black disabled:opacity-30 transition-all text-white shadow-lg disabled:hover:scale-100">
+        <motion.button 
+            whileHover={{ scale: disabled ? 1 : 1.02 }} 
+            whileTap={{ scale: disabled ? 1 : 0.95 }} 
+            onClick={() => setWager(Math.min(balance, wager * 2))} 
+            disabled={disabled} 
+            className="flex-1 text-xs sm:text-sm bg-slate-700/50 hover:bg-slate-600/50 px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl font-black disabled:opacity-30 transition-all text-white shadow-lg disabled:hover:scale-100 touch-manipulation active:scale-90"
+        >
             2× DOUBLE
         </motion.button>
-        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setWager(Math.floor(balance))} disabled={disabled} 
-            className="flex-1 text-sm bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 px-4 py-3 rounded-xl font-black disabled:opacity-30 transition-all text-slate-900 shadow-lg disabled:hover:scale-100">
+        <motion.button 
+            whileHover={{ scale: disabled ? 1 : 1.02 }} 
+            whileTap={{ scale: disabled ? 1 : 0.95 }} 
+            onClick={() => setWager(Math.floor(balance))} 
+            disabled={disabled} 
+            className="flex-1 text-xs sm:text-sm bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl font-black disabled:opacity-30 transition-all text-slate-900 shadow-lg disabled:hover:scale-100 touch-manipulation active:scale-90"
+        >
             💰 MAX
         </motion.button>
     </div>
 );
 
-// --- Game: Fruit Frenzy ---
+// --- Game: Fruit Frenzy (Optimized for frequent small wins + mobile, RTP 90%) ---
 const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, promptLogin }) => {
     const REELS_COUNT = 5;
     const ROWS_COUNT = 3;
     const SYMBOL_SIZE = 80;
-    const SPIN_DURATION_BASE = 2500;
-    const SPIN_DURATION_INCREMENT = 300;
+    const SPIN_DURATION_BASE = 2000;
+    const SPIN_DURATION_INCREMENT = 250;
 
     const [wager, setWager] = useState(10);
     const [spinning, setSpinning] = useState(false);
@@ -289,24 +337,25 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
         'SCATTER': { key: 'SCATTER', src: '/ff7.png' },
     }), []);
 
-    // RTP @ ~90%: Payouts for low-tier symbols are slightly increased to raise the overall return.
+    // OPTIMIZED PAYTABLE: Higher frequency of small wins (3-of-a-kind), lower multipliers to maintain 90% RTP
     const PAYTABLE = useMemo(() => ({
-        [SYMBOLS.SEVEN.key]:   { 5: 5000, 4: 100, 3: 10 }, 
-        [SYMBOLS.DIAMOND.key]: { 5: 50, 4: 5, 3: 1.5 }, 
-        [SYMBOLS.GRAPE.key]:   { 5: 15, 4: 2.5, 3: 0.8 }, 
-        [SYMBOLS.ORANGE.key]:  { 5: 8, 4: 2, 3: 0.6 }, 
-        [SYMBOLS.LEMON.key]:   { 5: 6, 4: 1.5, 3: 0.4 }, 
-        [SYMBOLS.CHERRY.key]:  { 5: 5, 4: 1.2, 3: 0.4 }, 
+        [SYMBOLS.SEVEN.key]:   { 5: 500, 4: 25, 3: 3 }, 
+        [SYMBOLS.DIAMOND.key]: { 5: 20, 4: 3, 3: 0.8 }, 
+        [SYMBOLS.GRAPE.key]:   { 5: 8, 4: 1.5, 3: 0.6 }, 
+        [SYMBOLS.ORANGE.key]:  { 5: 5, 4: 1.2, 3: 0.5 }, 
+        [SYMBOLS.LEMON.key]:   { 5: 3, 4: 0.8, 3: 0.4 }, 
+        [SYMBOLS.CHERRY.key]:  { 5: 2, 4: 0.6, 3: 0.3 }, 
     }), [SYMBOLS]);
     
+    // OPTIMIZED VIRTUAL_REELS: Heavily favor CHERRY and LEMON for frequent 3-of-a-kind wins
     const VIRTUAL_REELS = useMemo(() => {
         const createReel = (weights) => Object.entries(weights).flatMap(([symbolKey, count]) => Array(count).fill(SYMBOLS[symbolKey]));
         return [
-            createReel({ 'CHERRY': 35, 'LEMON': 30, 'ORANGE': 25, 'GRAPE': 20, 'DIAMOND': 10, 'SEVEN': 1, 'SCATTER': 2 }),
-            createReel({ 'CHERRY': 30, 'LEMON': 25, 'ORANGE': 20, 'GRAPE': 18, 'DIAMOND': 8, 'SEVEN': 2, 'SCATTER': 2 }),
-            createReel({ 'CHERRY': 25, 'LEMON': 20, 'ORANGE': 18, 'GRAPE': 15, 'DIAMOND': 5, 'SEVEN': 3, 'SCATTER': 1 }),
-            createReel({ 'CHERRY': 20, 'LEMON': 18, 'ORANGE': 15, 'GRAPE': 12, 'DIAMOND': 4, 'SEVEN': 4, 'SCATTER': 3 }),
-            createReel({ 'CHERRY': 20, 'LEMON': 18, 'ORANGE': 15, 'GRAPE': 12, 'DIAMOND': 4, 'SEVEN': 5, 'SCATTER': 4 }),
+            createReel({ 'CHERRY': 50, 'LEMON': 40, 'ORANGE': 25, 'GRAPE': 15, 'DIAMOND': 5, 'SEVEN': 1, 'SCATTER': 2 }),
+            createReel({ 'CHERRY': 48, 'LEMON': 38, 'ORANGE': 23, 'GRAPE': 14, 'DIAMOND': 4, 'SEVEN': 1, 'SCATTER': 2 }),
+            createReel({ 'CHERRY': 45, 'LEMON': 35, 'ORANGE': 22, 'GRAPE': 12, 'DIAMOND': 3, 'SEVEN': 1, 'SCATTER': 2 }),
+            createReel({ 'CHERRY': 40, 'LEMON': 32, 'ORANGE': 20, 'GRAPE': 10, 'DIAMOND': 3, 'SEVEN': 2, 'SCATTER': 3 }),
+            createReel({ 'CHERRY': 38, 'LEMON': 30, 'ORANGE': 18, 'GRAPE': 10, 'DIAMOND': 2, 'SEVEN': 2, 'SCATTER': 4 }),
         ];
     }, [SYMBOLS]);
 
@@ -369,9 +418,6 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
             setTimeout(() => playSound('playReelStop'), animationDuration - 100);
         });
 
-        // The timeout ensures this logic runs AFTER the animations are complete.
-        // The `finalReels` array, which determines the payout, is the same data
-        // used to create the final symbols shown on screen. This guarantees a match.
         setTimeout(() => {
             const paylines = [
                 finalReels.map(r => r[0]), // Top row
@@ -380,6 +426,7 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
             ];
             let totalWinnings = 0;
             const winningLineIndices = new Set();
+            let nearMissDetected = false;
             paylines.forEach((line, lineIndex) => {
                 const lineSymbol = line[0];
                 if (!PAYTABLE[lineSymbol.key]) return;
@@ -391,6 +438,9 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
                 if (PAYTABLE[lineSymbol.key][matchCount]) {
                     totalWinnings += wager * PAYTABLE[lineSymbol.key][matchCount];
                     winningLineIndices.add(lineIndex);
+                } else if (matchCount === 2 && !nearMissDetected) {
+                    nearMissDetected = true;
+                    playSound('playNearMiss');
                 }
             });
 
@@ -413,17 +463,17 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
     };
 
     return (
-        <div className="flex flex-col items-center p-4 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-violet-500/30 premium-shadow animate-scale-in relative">
+        <div className="flex flex-col items-center p-3 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-violet-500/30 premium-shadow animate-scale-in relative">
             <InfoIcon onClick={() => setIsInfoOpen(true)} />
             <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Fruit Frenzy Info">
-                <h3 className="font-bold text-xl text-white">How to Play</h3>
-                <p>Set your bet amount and press SPIN. Win by matching 3 or more symbols from left to right on any of the 3 paylines (top, middle, bottom).</p>
-                <h3 className="font-bold text-xl text-white mt-4">Paytable</h3>
+                <h3 className="font-bold text-lg sm:text-xl text-white">How to Play</h3>
+                <p className="text-sm sm:text-base">Set your bet amount and press SPIN. Win by matching 3 or more symbols from left to right on any of the 3 paylines (top, middle, bottom).</p>
+                <h3 className="font-bold text-lg sm:text-xl text-white mt-4">Paytable</h3>
                 <div className="space-y-2">
                     {Object.entries(PAYTABLE).map(([symbolKey, payouts]) => (
                         <div key={symbolKey} className="flex items-center justify-between bg-slate-900/50 p-2 rounded-lg">
-                            <img src={SYMBOLS[symbolKey].src} alt={symbolKey} className="w-12 h-12" />
-                            <div className="flex gap-4 text-right text-sm">
+                            <img src={SYMBOLS[symbolKey].src} alt={symbolKey} className="w-10 h-10 sm:w-12 sm:h-12" />
+                            <div className="flex gap-2 sm:gap-4 text-right text-xs sm:text-sm">
                                 <div><span className="font-bold">5x:</span> <span className="text-amber-300">{payouts[5]}x</span></div>
                                 <div><span className="font-bold">4x:</span> <span className="text-amber-300">{payouts[4]}x</span></div>
                                 <div><span className="font-bold">3x:</span> <span className="text-amber-300">{payouts[3]}x</span></div>
@@ -431,11 +481,14 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
                         </div>
                     ))}
                 </div>
+                <div className="mt-4 p-3 bg-violet-500/20 rounded-lg border border-violet-500/30">
+                    <p className="text-xs sm:text-sm text-center text-violet-200">💡 Aces & 7s pay out most frequently!</p>
+                </div>
             </InfoModal>
             <Confetti show={showConfetti} />
-            <div className="w-full bg-gradient-to-b from-violet-900/50 via-black to-black rounded-3xl p-4 sm:p-6 mb-6 border-4 border-violet-500/50 shadow-2xl relative overflow-hidden">
+            <div className="w-full bg-gradient-to-b from-violet-900/50 via-black to-black rounded-2xl sm:rounded-3xl p-3 sm:p-6 mb-4 sm:mb-6 border-2 sm:border-4 border-violet-500/50 shadow-2xl relative overflow-hidden">
                 <div className="shimmer absolute inset-0"></div>
-                <div className="bg-slate-900/50 rounded-2xl p-2 sm:p-5 flex justify-center gap-1 sm:gap-3 overflow-hidden h-[260px] relative">
+                <div className="bg-slate-900/50 rounded-xl sm:rounded-2xl p-2 sm:p-5 flex justify-center gap-1 sm:gap-3 overflow-hidden h-[240px] sm:h-[260px] relative">
                      {winningLines.includes(0) && <div className="absolute top-[40px] left-0 w-full h-1 bg-amber-300 z-20 animate-pulse-glow"></div>}
                      {winningLines.includes(1) && <div className="absolute top-1/2 left-0 w-full h-1 bg-amber-300 -translate-y-1/2 z-20 animate-pulse-glow"></div>}
                      {winningLines.includes(2) && <div className="absolute bottom-[40px] left-0 w-full h-1 bg-amber-300 z-20 animate-pulse-glow"></div>}
@@ -444,7 +497,7 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
                             <div ref={el => reelRefs.current[i] = el} style={{ transform: 'translateY(0px)' }} className="relative">
                                 {strip.map((symbol, j) => (
                                     <div key={j} className="w-full h-[80px] flex items-center justify-center text-5xl transition-all">
-                                        <img src={symbol.src} alt={symbol.key} className="w-12 h-12 sm:w-16 sm:h-16" />
+                                        <img src={symbol.src} alt={symbol.key} className="w-12 h-12 sm:w-14 sm:h-14" />
                                     </div>
                                 ))}
                             </div>
@@ -452,28 +505,35 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
                     ))}
                 </div>
                  {showResult && lastWin > 0 && (
-                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-20 backdrop-blur-sm rounded-3xl">
-                        <div className="text-center animate-bounce-in">
-                            <div className="text-5xl sm:text-7xl font-black text-amber-300 animate-neon mb-2">WIN!</div>
-                            <div className="text-4xl sm:text-5xl font-black text-green-300 animate-pulse-glow">+${lastWin.toFixed(2)}</div>
-                            <div className="text-lg sm:text-xl text-amber-200 mt-2">{(lastWin/wager).toFixed(2)}x</div>
+                    <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-20 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
+                        <div className="text-center animate-bounce-in px-4">
+                            <div className="text-4xl sm:text-7xl font-black text-amber-300 animate-neon mb-2">WIN!</div>
+                            <div className="text-3xl sm:text-5xl font-black text-green-300 animate-pulse-glow">+${lastWin.toFixed(2)}</div>
+                            <div className="text-base sm:text-xl text-amber-200 mt-2">{(lastWin/wager).toFixed(2)}x</div>
                         </div>
                     </div>
                 )}
             </div>
              <div className="w-full">
                 <div className="flex justify-between items-center mb-2">
-                    <label className="text-sm text-slate-300 font-bold">Bet Amount</label>
+                    <label className="text-xs sm:text-sm text-slate-300 font-bold">Bet Amount</label>
+                    <div className="text-xs text-slate-400">Balance: ${balance.toFixed(2)}</div>
                 </div>
-                <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={spinning || !user} className="w-full bg-slate-800 p-4 sm:p-5 rounded-2xl border-2 border-violet-500/40 text-xl sm:text-2xl font-black shadow-inner mb-3 focus:border-violet-400 focus:outline-none transition-all"/>
+                <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={spinning || !user} className="w-full bg-slate-800 p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 border-violet-500/40 text-lg sm:text-2xl font-black shadow-inner mb-2 sm:mb-3 focus:border-violet-400 focus:outline-none transition-all"/>
                 <QuickBetButtons wager={wager} setWager={setWager} balance={balance} disabled={spinning || !user} />
                 
                 {user ? (
-                    <button onClick={spin} disabled={spinning || wager <= 0 || wager > balance} className="w-full mt-4 bg-gradient-to-r from-violet-600 via-violet-500 to-violet-600 text-white p-4 sm:p-6 rounded-2xl text-2xl sm:text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-violet-500/50 disabled:opacity-50 disabled:hover:scale-100 transition-all">
-                        {spinning ? <span className="animate-pulse">SPINNING...</span> : 'SPIN'}
-                    </button>
+                    <motion.button 
+                        onClick={spin} 
+                        disabled={spinning || wager <= 0 || wager > balance}
+                        whileHover={{ scale: spinning ? 1 : 1.02 }}
+                        whileTap={{ scale: spinning ? 1 : 0.98 }}
+                        className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-violet-600 via-violet-500 to-violet-600 text-white p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl disabled:opacity-50 disabled:hover:scale-100 transition-all touch-manipulation active:scale-95"
+                    >
+                        {spinning ? <span className="animate-pulse">SPINNING...</span> : 'SPIN 🎰'}
+                    </motion.button>
                 ) : (
-                    <button onClick={promptLogin} className="w-full mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-4 sm:p-6 rounded-2xl text-2xl sm:text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all">
+                    <button onClick={promptLogin} className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all touch-manipulation">
                         Sign In to Spin
                     </button>
                 )}
@@ -506,14 +566,12 @@ const SugarScratch = ({ balance, setBalance, playSound, logGameResult, user, pro
         setShowConfetti(false);
         setRevealed(false);
         
-        // RTP @ 90%: Probabilities adjusted to hit the target RTP.
-        // EV = (0.01*25) + (0.04*5) + (0.15*2) + (0.30*0.5) = 0.25 + 0.20 + 0.30 + 0.15 = 0.90
         const outcomeDistribution = [
-            { matches: 4, prob: 0.01 },  // 1% chance to win 25x
-            { matches: 3, prob: 0.04 },  // 4% chance to win 5x
-            { matches: 2, prob: 0.15 },  // 15% chance to win 2x
-            { matches: 1, prob: 0.30 },  // 30% chance to win 0.5x
-            { matches: 0, prob: 0.50 },  // 50% chance to win 0x
+            { matches: 4, prob: 0.01 },
+            { matches: 3, prob: 0.04 },
+            { matches: 2, prob: 0.15 },
+            { matches: 1, prob: 0.30 },
+            { matches: 0, prob: 0.50 },
         ];
         
         let numMatches = 0;
@@ -537,10 +595,9 @@ const SugarScratch = ({ balance, setBalance, playSound, logGameResult, user, pro
         pNumbers.push(...winners.slice(0, numMatches));
         pNumbers.push(...losers.slice(0, 12 - numMatches));
 
-        // Apply near-miss logic to non-winning numbers
         pNumbers.forEach((pNum, index) => {
             if (!winners.includes(pNum)) {
-                if (Math.random() < 0.5) { // 50% chance for a near miss
+                if (Math.random() < 0.5) {
                     const randomWinner = winners[Math.floor(Math.random() * winners.length)];
                     let nearMissNum = randomWinner + (Math.random() < 0.5 ? 1 : -1);
                     if (nearMissNum < 1) nearMissNum = randomWinner + 1;
@@ -601,13 +658,13 @@ const SugarScratch = ({ balance, setBalance, playSound, logGameResult, user, pro
     }, [playerNumbers, winningNumbers, setBalance, playSound, logGameResult, wager]);
 
     return (
-        <div className="flex flex-col items-center p-4 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-pink-500/30 premium-shadow animate-scale-in relative">
+        <div className="flex flex-col items-center p-3 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-pink-500/30 premium-shadow animate-scale-in relative">
             <InfoIcon onClick={() => setIsInfoOpen(true)} />
             <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Sugar Scratch Info">
-                <h3 className="font-bold text-xl text-white">How to Play</h3>
-                <p>Buy a card for the selected bet amount. Scratch all 12 spots on your card. Match your numbers to any of the 4 winning numbers to win a prize!</p>
-                <h3 className="font-bold text-xl text-white mt-4">Payouts</h3>
-                <ul className="list-disc list-inside space-y-1">
+                <h3 className="font-bold text-lg sm:text-xl text-white">How to Play</h3>
+                <p className="text-sm sm:text-base">Buy a card for the selected bet amount. Scratch all 12 spots on your card. Match your numbers to any of the 4 winning numbers to win a prize!</p>
+                <h3 className="font-bold text-lg sm:text-xl text-white mt-4">Payouts</h3>
+                <ul className="list-disc list-inside space-y-1 text-sm sm:text-base">
                     <li>Match 1 Number: <span className="font-bold text-amber-300">0.5x</span> your bet</li>
                     <li>Match 2 Numbers: <span className="font-bold text-amber-300">2x</span> your bet</li>
                     <li>Match 3 Numbers: <span className="font-bold text-amber-300">5x</span> your bet</li>
@@ -615,23 +672,23 @@ const SugarScratch = ({ balance, setBalance, playSound, logGameResult, user, pro
                 </ul>
             </InfoModal>
             <Confetti show={showConfetti} />
-            <div className="w-full glass-effect p-4 rounded-2xl mb-4 text-center">
-                <h3 className="text-xl font-bold text-amber-300 mb-2">Winning Numbers</h3>
+            <div className="w-full glass-effect p-3 sm:p-4 rounded-xl sm:rounded-2xl mb-3 sm:mb-4 text-center">
+                <h3 className="text-base sm:text-xl font-bold text-amber-300 mb-2">Winning Numbers</h3>
                 <div className="flex justify-center gap-2 sm:gap-4">
                     {Array.from({length: 4}).map((_, i) => (
-                        <div key={i} className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-xl sm:text-2xl font-black transition-all duration-500 ${revealed && playerNumbers.includes(winningNumbers[i]) ? 'bg-green-500 text-white animate-pulse-glow' : 'bg-slate-900/50 text-amber-300'}`}>
+                        <div key={i} className={`w-10 h-10 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-base sm:text-2xl font-black transition-all duration-500 ${revealed && playerNumbers.includes(winningNumbers[i]) ? 'bg-green-500 text-white animate-pulse-glow' : 'bg-slate-900/50 text-amber-300'}`}>
                             {playing ? winningNumbers[i] : '?'}
                         </div>
                     ))}
                 </div>
             </div>
 
-            <div className="w-full grid grid-cols-4 gap-2 sm:gap-4 mb-6">
+            <div className="w-full grid grid-cols-4 gap-1.5 sm:gap-2 md:gap-4 mb-4 sm:mb-6">
                 {Array.from({ length: 12 }).map((_, i) => (
                     <div key={i} onClick={() => scratch(i)}
-                         className="aspect-square rounded-2xl bg-gray-400 cursor-pointer flex items-center justify-center text-xl sm:text-3xl font-black relative overflow-hidden shadow-lg hover:scale-105 transition-all">
-                        <div className={`absolute inset-0 bg-gradient-to-br from-gray-500 to-gray-700 transition-all duration-300 ${scratched.has(i) ? 'opacity-0 scale-0' : 'opacity-100'} flex items-center justify-center text-white/60 text-5xl`}>?</div>
-                        <span className={`transition-all duration-300 ${scratched.has(i) ? 'scale-100' : 'scale-0'} ${winningNumbers.includes(playerNumbers[i]) && revealed ? 'text-green-300 animate-neon' : ''}`}>
+                         className="aspect-square rounded-xl sm:rounded-2xl bg-gray-400 cursor-pointer flex items-center justify-center text-lg sm:text-2xl md:text-3xl font-black relative overflow-hidden shadow-lg hover:scale-105 active:scale-95 transition-all touch-manipulation">
+                        <div className={`absolute inset-0 bg-gradient-to-br from-gray-500 to-gray-700 transition-all duration-300 ${scratched.has(i) ? 'opacity-0 scale-0' : 'opacity-100'} flex items-center justify-center text-white/60 text-3xl sm:text-5xl`}>?</div>
+                        <span className={`transition-all duration-300 ${scratched.has(i) ? 'scale-100' : 'scale-0'} ${winningNumbers.includes(playerNumbers[i]) && revealed ? 'text-green-300 animate-neon' : ''} text-lg sm:text-2xl md:text-3xl`}>
                             {playing ? playerNumbers[i] : ''}
                         </span>
                     </div>
@@ -640,28 +697,40 @@ const SugarScratch = ({ balance, setBalance, playSound, logGameResult, user, pro
 
             <div className="w-full">
                 {revealed && (
-                    <div className={`text-center text-3xl font-black mb-5 p-6 rounded-2xl animate-bounce-in ${totalWin > 0 ? 'bg-green-500/20 text-green-300 border-2 border-green-500' : 'bg-slate-800/50 text-slate-400'}`}>
+                    <div className={`text-center text-xl sm:text-3xl font-black mb-4 sm:mb-5 p-4 sm:p-6 rounded-xl sm:rounded-2xl animate-bounce-in ${totalWin > 0 ? 'bg-green-500/20 text-green-300 border-2 border-green-500' : 'bg-slate-800/50 text-slate-400'}`}>
                         {totalWin > 0 ? `You Won $${totalWin.toFixed(2)}!` : 'No Matches This Time!'}
                     </div>
                 )}
                 
-                {playing && !revealed && <button onClick={revealAll} className="w-full bg-amber-400 text-slate-900 p-3 rounded-xl mb-3 font-bold">Reveal All</button>}
+                {playing && !revealed && (
+                    <motion.button 
+                        onClick={revealAll}
+                        whileTap={{ scale: 0.95 }}
+                        className="w-full bg-amber-400 text-slate-900 p-2.5 sm:p-3 rounded-lg sm:rounded-xl mb-2 sm:mb-3 font-bold text-sm sm:text-base touch-manipulation active:scale-95"
+                    >
+                        Reveal All
+                    </motion.button>
+                )}
 
                 {!playing && (
                     <>
-                        <label className="text-sm text-slate-300 mb-2 block font-bold">Bet Amount</label>
-                        <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={playing || !user} className="w-full bg-slate-800 p-5 rounded-2xl border-2 border-pink-500/40 text-2xl font-black shadow-inner mb-3 focus:border-pink-400 focus:outline-none transition-all"/>
+                        <label className="text-xs sm:text-sm text-slate-300 mb-2 block font-bold">Bet Amount</label>
+                        <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={playing || !user} className="w-full bg-slate-800 p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 border-pink-500/40 text-lg sm:text-2xl font-black shadow-inner mb-2 sm:mb-3 focus:border-pink-400 focus:outline-none transition-all"/>
                         <QuickBetButtons wager={wager} setWager={setWager} balance={balance} disabled={playing || !user} />
                     </>
                 )}
                 
                  {user ? (
-                    <button onClick={playing ? null : startGame} disabled={playing || balance < wager || wager <= 0} 
-                        className="w-full mt-4 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 text-white p-6 rounded-2xl text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-pink-500/50 disabled:opacity-50 disabled:hover:scale-100 transition-all">
-                        {playing ? 'Good Luck!' : `Buy Card ($${wager.toFixed(2)})`}
-                    </button>
+                    <motion.button 
+                        onClick={playing ? null : startGame} 
+                        disabled={playing || balance < wager || wager <= 0}
+                        whileTap={{ scale: playing ? 1 : 0.95 }}
+                        className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 text-white p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl disabled:opacity-50 disabled:hover:scale-100 transition-all touch-manipulation active:scale-95"
+                    >
+                        {playing ? 'Good Luck! 🍀' : `Buy Card ($${wager.toFixed(2)})`}
+                    </motion.button>
                 ) : (
-                    <button onClick={promptLogin} className="w-full mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-6 rounded-2xl text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all">
+                    <button onClick={promptLogin} className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all touch-manipulation">
                         Sign In to Play
                     </button>
                 )}
@@ -736,9 +805,7 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
         if (gameState === 'running') {
             const startTime = Date.now();
             
-            // RTP @ 90%: This formula generates a crash point distribution
-            // with a 10% house edge, resulting in a 90% RTP over many rounds.
-            const houseEdge = 10; // 10%
+            const houseEdge = 10;
             const r = Math.random();
             let crashPointValue = (100 - houseEdge) / (100 - r * (100-houseEdge));
 
@@ -781,33 +848,33 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
     const rocketX = gameState === 'running' ? Math.min((multiplier - 1) * 10, 80) : 0;
 
     return (
-        <div className="flex flex-col items-center p-4 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-orange-500/30 premium-shadow animate-scale-in relative">
+        <div className="flex flex-col items-center p-3 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-orange-500/30 premium-shadow animate-scale-in relative">
             <InfoIcon onClick={() => setIsInfoOpen(true)} />
             <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Icicle Pop Info">
-                <h3 className="font-bold text-xl text-white">How to Play</h3>
-                <p>Place your bet before the round begins. Watch the multiplier increase as the icicle flies higher. Click "EJECT" to cash out your winnings at the current multiplier.</p>
-                <p className="mt-2">Be careful! If you don't eject before the icicle "POPS!", you lose your bet. The multiplier can pop at any time.</p>
+                <h3 className="font-bold text-lg sm:text-xl text-white">How to Play</h3>
+                <p className="text-sm sm:text-base">Place your bet before the round begins. Watch the multiplier increase as the icicle flies higher. Click "EJECT" to cash out your winnings at the current multiplier.</p>
+                <p className="mt-2 text-sm sm:text-base">Be careful! If you don't eject before the icicle "POPS!", you lose your bet. The multiplier can pop at any time.</p>
             </InfoModal>
-            <div className="w-full flex flex-wrap gap-2 mb-3">
+            <div className="w-full flex flex-wrap gap-1.5 sm:gap-2 mb-3">
                 {history.map((h, i) => (
-                    <div key={i} className={`text-xs font-bold px-3 py-1 rounded-md ${h >= 2 ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+                    <div key={i} className={`text-xs font-bold px-2 py-1 sm:px-3 sm:py-1 rounded-md ${h >= 2 ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
                         {h.toFixed(2)}x
                     </div>
                 ))}
             </div>
-            <div className="relative w-full h-96 bg-gradient-to-b from-slate-950 to-gray-950 rounded-3xl mb-6 flex items-center justify-center overflow-hidden border-4 border-orange-500/30 shadow-2xl">
+            <div className="relative w-full h-72 sm:h-96 bg-gradient-to-b from-slate-950 to-gray-950 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 flex items-center justify-center overflow-hidden border-2 sm:border-4 border-orange-500/30 shadow-2xl">
                 <div 
                     className="absolute inset-0 bg-cover bg-center opacity-50"
                     style={{ backgroundImage: `url('/ipbackground.png')` }}
                 ></div>
                 {gameState === 'betting' && (
-                    <div className="absolute top-4 left-4 text-white font-bold glass-effect px-4 py-2 rounded-lg">
+                    <div className="absolute top-3 sm:top-4 left-3 sm:left-4 text-white font-bold glass-effect px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-sm sm:text-base">
                         Next round in {countdown}s
                     </div>
                 )}
                 
                 <div className="absolute bottom-10 left-1/2" style={{ transform: `translate(-50%, -${rocketHeight}px) translateX(${rocketX}px) rotate(15deg)` }}>
-                    <div className={`w-20 h-auto ${gameState === 'running' ? 'animate-pulse-glow' : ''}`}>
+                    <div className={`w-16 h-auto sm:w-20 ${gameState === 'running' ? 'animate-pulse-glow' : ''}`}>
                         <img src="/rocket.png" alt="Icicle Pop" />
                     </div>
                 </div>
@@ -818,22 +885,22 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
                     </div>
                 )}
                 
-                <div className="text-center z-10 relative">
+                <div className="text-center z-10 relative px-4">
                      {lastGameResult ? (
                         lastGameResult.type === 'crash' ? (
                             <div className="animate-shake">
-                                <div className="text-5xl sm:text-7xl font-black text-red-500 mb-3 animate-neon">POPPED!</div>
-                                <div className="text-2xl sm:text-4xl font-bold text-red-400">@{lastGameResult.multiplier.toFixed(2)}x</div>
+                                <div className="text-4xl sm:text-7xl font-black text-red-500 mb-2 sm:mb-3 animate-neon">POPPED!</div>
+                                <div className="text-xl sm:text-4xl font-bold text-red-400">@{lastGameResult.multiplier.toFixed(2)}x</div>
                             </div>
                         ) : (
                             <div className="animate-bounce-in">
-                                <div className="text-5xl sm:text-7xl font-black text-green-400 mb-3 animate-neon">SUCCESS!</div>
-                                <div className="text-2xl sm:text-4xl font-bold text-green-300">@{lastGameResult.multiplier.toFixed(2)}x</div>
-                                <div className="text-xl sm:text-3xl font-black text-amber-300 mt-2">+${lastGameResult.winnings.toFixed(2)}</div>
+                                <div className="text-4xl sm:text-7xl font-black text-green-400 mb-2 sm:mb-3 animate-neon">SUCCESS!</div>
+                                <div className="text-xl sm:text-4xl font-bold text-green-300">@{lastGameResult.multiplier.toFixed(2)}x</div>
+                                <div className="text-lg sm:text-3xl font-black text-amber-300 mt-2">+${lastGameResult.winnings.toFixed(2)}</div>
                             </div>
                         )
                     ) : (
-                         <div className={`text-6xl sm:text-8xl font-black tabular-nums transition-all duration-200 ${multiplier > 10 ? 'text-amber-300 animate-neon' : multiplier > 5 ? 'text-orange-400' : 'text-white'}`}>
+                         <div className={`text-5xl sm:text-8xl font-black tabular-nums transition-all duration-200 ${multiplier > 10 ? 'text-amber-300 animate-neon' : multiplier > 5 ? 'text-orange-400' : 'text-white'}`}>
                             {multiplier.toFixed(2)}x
                         </div>
                     )}
@@ -842,20 +909,29 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
             
             <div className="w-full">
                 {gameState === 'running' && placedBet ? (
-                    <button onClick={cashOut} className="w-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-900 p-6 rounded-2xl text-3xl font-black shadow-2xl hover:scale-105 transition-all animate-glow">
-                        EJECT @ {(placedBet * multiplier).toFixed(2)}
-                    </button>
+                    <motion.button 
+                        onClick={cashOut}
+                        whileTap={{ scale: 0.95 }}
+                        className="w-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl transition-all animate-glow touch-manipulation active:scale-95"
+                    >
+                        EJECT @ ${(placedBet * multiplier).toFixed(2)}
+                    </motion.button>
                 ) : (
                     <>
-                        <label className="text-sm text-slate-300 mb-2 block font-bold">Bet Amount</label>
-                        <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={gameState !== 'betting' || !user || placedBet} className="w-full bg-slate-800 p-5 rounded-2xl border-2 border-orange-500/40 text-2xl font-black shadow-inner mb-3 focus:border-orange-400 focus:outline-none transition-all"/>
+                        <label className="text-xs sm:text-sm text-slate-300 mb-2 block font-bold">Bet Amount</label>
+                        <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={gameState !== 'betting' || !user || placedBet} className="w-full bg-slate-800 p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 border-orange-500/40 text-lg sm:text-2xl font-black shadow-inner mb-2 sm:mb-3 focus:border-orange-400 focus:outline-none transition-all"/>
                         <QuickBetButtons wager={wager} setWager={setWager} balance={balance} disabled={gameState !== 'betting' || !user || placedBet} />
                         {user ? (
-                            <button onClick={placeBet} disabled={gameState !== 'betting' || placedBet || wager <= 0 || wager > balance} className="w-full mt-4 bg-gradient-to-r from-green-600 via-green-500 to-green-600 text-white p-6 rounded-2xl text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-green-500/50 disabled:opacity-50 disabled:hover:scale-100 transition-all">
-                                {placedBet ? `BET PLACED: $${placedBet}` : 'PLACE BET'}
-                            </button>
+                            <motion.button 
+                                onClick={placeBet} 
+                                disabled={gameState !== 'betting' || placedBet || wager <= 0 || wager > balance}
+                                whileTap={{ scale: gameState !== 'betting' || placedBet ? 1 : 0.95 }}
+                                className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-green-600 via-green-500 to-green-600 text-white p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl disabled:opacity-50 disabled:hover:scale-100 transition-all touch-manipulation active:scale-95"
+                            >
+                                {placedBet ? `BET PLACED: $${placedBet}` : 'PLACE BET 🚀'}
+                            </motion.button>
                         ) : (
-                             <button onClick={promptLogin} className="w-full mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-6 rounded-2xl text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all">
+                             <button onClick={promptLogin} className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all touch-manipulation">
                                 Sign In to Bet
                             </button>
                         )}
@@ -884,7 +960,6 @@ const CandyDrop = ({ balance, setBalance, playSound, logGameResult, user, prompt
 
     const ROWS = 13;
 
-    // RTP @ ~90%: Multipliers in the central, most probable buckets have been increased.
     const MULTIPLIERS = useMemo(() => ({
         low:    [5.5, 3, 2, 1.2, 0.9, 0.6, 0.5, 0.5, 0.6, 0.9, 1.2, 2, 3, 5.5],
         medium: [22, 9, 4, 2, 0.8, 0.4, 0.3, 0.3, 0.4, 0.8, 2, 4, 9, 22],
@@ -1016,23 +1091,22 @@ const CandyDrop = ({ balance, setBalance, playSound, logGameResult, user, prompt
     };
     
     return (
-        <div className="flex flex-col items-center p-4 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-blue-500/30 premium-shadow animate-scale-in relative">
+        <div className="flex flex-col items-center p-3 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-blue-500/30 premium-shadow animate-scale-in relative">
             <InfoIcon onClick={() => setIsInfoOpen(true)} />
             <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Candy Drop Info">
-                <h3 className="font-bold text-xl text-white">How to Play</h3>
-                <p>Choose your bet amount, number of candies to drop, and a risk level. Press "DROP" to release the candies from the top. You win the multiplier of the bucket the candy lands in.</p>
-                <h3 className="font-bold text-xl text-white mt-4">Risk Levels</h3>
-                <p>Higher risk levels have lower odds of winning, but offer much larger potential prize multipliers.</p>
+                <h3 className="font-bold text-lg sm:text-xl text-white">How to Play</h3>
+                <p className="text-sm sm:text-base">Choose your bet amount, number of candies to drop, and a risk level. Press "DROP" to release the candies from the top. You win the multiplier of the bucket the candy lands in.</p>
+                <h3 className="font-bold text-lg sm:text-xl text-white mt-4">Risk Levels</h3>
+                <p className="text-sm sm:text-base">Higher risk levels have lower odds of winning, but offer much larger potential prize multipliers.</p>
             </InfoModal>
             <Confetti show={showConfetti} />
-            <div className="w-full flex justify-center gap-2 sm:gap-3 mb-5 glass-effect p-2 sm:p-3 rounded-2xl border-2 border-blue-400/20">
+            <div className="w-full flex justify-center gap-1.5 sm:gap-2 md:gap-3 mb-4 sm:mb-5 glass-effect p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 border-blue-400/20">
                 {['low', 'medium', 'high'].map(r => (
                     <motion.button 
                         key={r}
                         onClick={() => !isDropping && setRisk(r)}
-                        whileHover={{ scale: 1.05, filter: "brightness(1.1)" }}
-                        whileTap={{ scale: 0.95 }}
-                        className={`px-4 py-2 sm:px-8 sm:py-3 rounded-xl text-xs sm:text-base font-black capitalize transition-all ${
+                        whileTap={{ scale: isDropping ? 1 : 0.95 }}
+                        className={`px-3 py-2 sm:px-6 sm:py-2.5 md:px-8 md:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-black capitalize transition-all touch-manipulation active:scale-95 ${
                             risk === r 
                                 ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white scale-105 shadow-lg shadow-blue-500/50' 
                                 : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
@@ -1042,7 +1116,7 @@ const CandyDrop = ({ balance, setBalance, playSound, logGameResult, user, prompt
                 ))}
             </div>
             
-            <div className="relative w-full aspect-square bg-gradient-to-b from-slate-950 to-gray-950 rounded-3xl mb-6 flex flex-col justify-between p-2 sm:p-4 border-4 border-blue-500/30 shadow-2xl overflow-hidden">
+            <div className="relative w-full aspect-square bg-gradient-to-b from-slate-950 to-gray-950 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 flex flex-col justify-between p-2 sm:p-4 border-2 sm:border-4 border-blue-500/30 shadow-2xl overflow-hidden">
                 <AnimatePresence>
                     {batchTotalWin !== null && !isDropping && (
                         <motion.div
@@ -1050,15 +1124,15 @@ const CandyDrop = ({ balance, setBalance, playSound, logGameResult, user, prompt
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -50, scale: 0.5 }}
                             transition={{ type: 'spring', damping: 15, stiffness: 200 }}
-                            className="absolute inset-0 bg-black/70 flex items-center justify-center z-30 backdrop-blur-sm rounded-3xl"
+                            className="absolute inset-0 bg-black/70 flex items-center justify-center z-30 backdrop-blur-sm rounded-2xl sm:rounded-3xl"
                         >
-                            <div className="text-center">
-                                <div className={`text-4xl sm:text-6xl font-black mb-3 animate-neon ${
+                            <div className="text-center px-4">
+                                <div className={`text-3xl sm:text-5xl md:text-6xl font-black mb-2 sm:mb-3 animate-neon ${
                                     batchTotalWin >= (wager * ballCount) ? 'text-green-400' : 'text-amber-300'
                                 }`}>
                                     Total Win!
                                 </div>
-                                <div className="text-3xl sm:text-5xl font-black text-white">
+                                <div className="text-2xl sm:text-4xl md:text-5xl font-black text-white">
                                     +$<AnimatedBalance value={batchTotalWin} />
                                 </div>
                             </div>
@@ -1081,7 +1155,7 @@ const CandyDrop = ({ balance, setBalance, playSound, logGameResult, user, prompt
                                 const pegId = `${r}-${c}`;
                                 return (
                                     <div key={c} 
-                                        className={`w-1 h-1 sm:w-3 sm:h-3 rounded-full transition-all duration-200 ${
+                                        className={`w-1 h-1 sm:w-2 sm:h-2 md:w-3 md:h-3 rounded-full transition-all duration-200 ${
                                             hitPegs[pegId] 
                                                 ? 'bg-amber-300 scale-150 shadow-lg shadow-amber-300/50' 
                                                 : 'bg-slate-500'
@@ -1099,7 +1173,7 @@ const CandyDrop = ({ balance, setBalance, playSound, logGameResult, user, prompt
                         const isHit = lastResults.some(res => res.bucketIndex === i);
                         return (
                             <div key={i} 
-                                className={`text-[8px] sm:text-xs font-black text-center w-[calc(100%/14)] py-1 sm:py-2 rounded-lg sm:rounded-xl transition-all duration-300 ${
+                                className={`text-[7px] sm:text-[10px] md:text-xs font-black text-center w-[calc(100%/14)] py-0.5 sm:py-1 md:py-2 rounded-md sm:rounded-lg md:rounded-xl transition-all duration-300 ${
                                     isHit && !isDropping
                                         ? 'scale-125 bg-amber-300/70 shadow-lg shadow-amber-300/50 animate-pulse-glow' 
                                         : 'bg-slate-800/70'
@@ -1116,16 +1190,16 @@ const CandyDrop = ({ balance, setBalance, playSound, logGameResult, user, prompt
             </div>
             
             <div className="w-full">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     <div>
-                        <label className="text-sm text-slate-300 mb-2 block font-bold">Bet Amount</label>
+                        <label className="text-xs sm:text-sm text-slate-300 mb-2 block font-bold">Bet Amount</label>
                         <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={isDropping || !user}
-                            className="w-full bg-slate-800 p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 border-blue-500/40 text-lg sm:text-2xl font-black shadow-inner focus:border-blue-400 focus:outline-none transition-all"/>
+                            className="w-full bg-slate-800 p-2.5 sm:p-3 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl border-2 border-blue-500/40 text-base sm:text-lg md:text-2xl font-black shadow-inner focus:border-blue-400 focus:outline-none transition-all"/>
                     </div>
                     <div>
-                        <label className="text-sm text-slate-300 mb-2 block font-bold">Candies</label>
+                        <label className="text-xs sm:text-sm text-slate-300 mb-2 block font-bold">Candies</label>
                         <select value={ballCount} onChange={e => setBallCount(Number(e.target.value))} disabled={isDropping || !user}
-                            className="w-full bg-slate-800 p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 border-blue-500/40 text-lg sm:text-2xl font-black shadow-inner focus:border-blue-400 focus:outline-none transition-all">
+                            className="w-full bg-slate-800 p-2.5 sm:p-3 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl border-2 border-blue-500/40 text-base sm:text-lg md:text-2xl font-black shadow-inner focus:border-blue-400 focus:outline-none transition-all">
                                 {[1, 5, 10].map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
@@ -1133,15 +1207,15 @@ const CandyDrop = ({ balance, setBalance, playSound, logGameResult, user, prompt
                 <QuickBetButtons wager={wager} setWager={setWager} balance={balance} disabled={isDropping || !user} />
                 {user ? (
                     <motion.button 
-                        whileHover={{ scale: 1.03, filter: "brightness(1.1)" }}
-                        whileTap={{ scale: 0.97 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                        onClick={dropCandies} disabled={isDropping || wager * ballCount <= 0 || wager * ballCount > balance} 
-                        className="w-full mt-4 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 text-white p-4 sm:p-6 rounded-2xl text-xl sm:text-3xl font-black shadow-2xl disabled:opacity-50 disabled:hover:scale-100 transition-all">
-                        {isDropping ? <span className="animate-pulse">DROPPING...</span> : `DROP ${ballCount} CAND${ballCount > 1 ? 'IES' : 'Y'}`}
+                        whileTap={{ scale: isDropping ? 1 : 0.95 }}
+                        onClick={dropCandies} 
+                        disabled={isDropping || wager * ballCount <= 0 || wager * ballCount > balance} 
+                        className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 text-white p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl text-lg sm:text-xl md:text-3xl font-black shadow-2xl disabled:opacity-50 disabled:hover:scale-100 transition-all touch-manipulation active:scale-95"
+                    >
+                        {isDropping ? <span className="animate-pulse">DROPPING...</span> : `DROP ${ballCount} CAND${ballCount > 1 ? 'IES' : 'Y'} 🍬`}
                     </motion.button>
                 ) : (
-                    <button onClick={promptLogin} className="w-full mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-6 rounded-2xl text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all">
+                    <button onClick={promptLogin} className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all touch-manipulation">
                         Sign In to Drop
                     </button>
                 )}
@@ -1165,7 +1239,6 @@ const SourApple = ({ balance, setBalance, playSound, logGameResult, user, prompt
     const factorial = useCallback((n) => (n <= 1 ? 1 : n * factorial(n - 1)), []);
     const combinations = useCallback((n, k) => (k < 0 || k > n) ? 0 : factorial(n) / (factorial(k) * factorial(n - k)), [factorial]);
     
-    // RTP @ 90%: The multiplier is calculated from true odds, then multiplied by 0.90.
     const calculateMultiplier = useCallback((picks) => {
         if (picks === 0) return 1.00;
         const totalTiles = GRID_SIZE * GRID_SIZE;
@@ -1238,31 +1311,37 @@ const SourApple = ({ balance, setBalance, playSound, logGameResult, user, prompt
     const isBetting = gameState === 'betting';
 
     return (
-        <div className="flex flex-col items-center p-4 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-green-500/30 premium-shadow animate-scale-in relative">
+        <div className="flex flex-col items-center p-3 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-green-500/30 premium-shadow animate-scale-in relative">
             <InfoIcon onClick={() => setIsInfoOpen(true)} />
             <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Sour Apple Info">
-                <h3 className="font-bold text-xl text-white">How to Play</h3>
-                <p>Set your bet and the number of Sour Apples on the grid. Click tiles to reveal Good Apples. Each Good Apple you find increases your prize multiplier.</p>
-                <p className="mt-2">You can "CASH OUT" at any time to collect your current winnings. If you reveal a Sour Apple, you lose your bet for that round.</p>
+                <h3 className="font-bold text-lg sm:text-xl text-white">How to Play</h3>
+                <p className="text-sm sm:text-base">Set your bet and the number of Sour Apples on the grid. Click tiles to reveal Good Apples. Each Good Apple you find increases your prize multiplier.</p>
+                <p className="mt-2 text-sm sm:text-base">You can "CASH OUT" at any time to collect your current winnings. If youreveal a Sour Apple, you lose your bet for that round.</p>
             </InfoModal>
             <Confetti show={showConfetti} />
-            <div className="relative w-full aspect-square bg-gradient-to-br from-slate-950 to-gray-950 rounded-3xl mb-6 grid grid-cols-5 gap-2 sm:gap-3 p-3 sm:p-5 border-4 border-green-500/30 shadow-2xl">
+            <div className="relative w-full aspect-square bg-gradient-to-br from-slate-950 to-gray-950 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 grid grid-cols-5 gap-1.5 sm:gap-2 md:gap-3 p-2 sm:p-3 md:p-5 border-2 sm:border-4 border-green-500/30 shadow-2xl">
                 {gameState === 'busted' && (
-                    <div className="absolute inset-0 bg-black/90 z-10 flex flex-col items-center justify-center rounded-3xl backdrop-blur-sm animate-scale-in">
-                        <div className="text-6xl sm:text-8xl font-black text-red-500 mb-4 animate-shake">SOUR!</div>
-                        <div className="text-xl sm:text-2xl text-red-300 mb-6">Better luck next time!</div>
-                        <button onClick={() => setGameState('betting')} className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 px-8 py-4 rounded-2xl mt-2 font-black text-xl text-white shadow-xl hover:scale-105 transition-all">Try Again</button>
+                    <div className="absolute inset-0 bg-black/90 z-10 flex flex-col items-center justify-center rounded-2xl sm:rounded-3xl backdrop-blur-sm animate-scale-in px-4">
+                        <div className="text-5xl sm:text-7xl md:text-8xl font-black text-red-500 mb-3 sm:mb-4 animate-shake">SOUR!</div>
+                        <div className="text-base sm:text-xl md:text-2xl text-red-300 mb-4 sm:mb-6">Better luck next time!</div>
+                        <motion.button 
+                            onClick={() => setGameState('betting')}
+                            whileTap={{ scale: 0.95 }}
+                            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 px-6 py-3 sm:px-8 sm:py-4 rounded-xl sm:rounded-2xl mt-2 font-black text-base sm:text-xl text-white shadow-xl touch-manipulation active:scale-95"
+                        >
+                            Try Again
+                        </motion.button>
                     </div>
                 )}
                 {Array.from({ length: GRID_SIZE*GRID_SIZE }).map((_, i) => (
                     <div key={i} 
-                        className={`tile ${revealed.has(i) ? 'flipped' : ''} ${gameState !== 'playing' || revealed.has(i) ? '' : 'cursor-pointer'}`} 
+                        className={`tile ${revealed.has(i) ? 'flipped' : ''} ${gameState !== 'playing' || revealed.has(i) ? '' : 'cursor-pointer active:scale-95'}`} 
                         onClick={() => handleTileClick(i)}
                     >
                         <div className="tile-inner">
                             <div className="tile-face tile-front"></div>
                             <div className="tile-face tile-back">
-                                <img src={grid[i] ? '/sour.png' : '/apples.png'} alt={grid[i] ? 'Sour Apple' : 'Good Apple'} className="w-10 h-10 sm:w-12 sm:h-12" />
+                                <img src={grid[i] ? '/sour.png' : '/apples.png'} alt={grid[i] ? 'Sour Apple' : 'Good Apple'} className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />
                             </div>
                         </div>
                     </div>
@@ -1270,47 +1349,57 @@ const SourApple = ({ balance, setBalance, playSound, logGameResult, user, prompt
             </div>
             {isBetting ? (
                  <div className="w-full">
-                     <div className="grid grid-cols-2 gap-3 mb-3">
+                     <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-2 sm:mb-3">
                          <div>
-                            <label className="text-sm text-slate-300 mb-2 block font-bold">Bet Amount</label>
-                            <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={!user} className="w-full bg-slate-800 p-3 sm:p-5 rounded-xl sm:rounded-2xl text-xl sm:text-2xl font-black border-2 border-green-500/40 shadow-inner focus:border-green-400 focus:outline-none transition-all" />
+                            <label className="text-xs sm:text-sm text-slate-300 mb-2 block font-bold">Bet Amount</label>
+                            <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={!user} className="w-full bg-slate-800 p-2.5 sm:p-3 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl text-base sm:text-lg md:text-2xl font-black border-2 border-green-500/40 shadow-inner focus:border-green-400 focus:outline-none transition-all" />
                          </div>
                          <div>
-                            <label className="text-sm text-slate-300 mb-2 block font-bold">Sour Apples</label>
-                            <select value={numBadApples} onChange={e => setNumBadApples(Number(e.target.value))} disabled={!user} className="w-full bg-slate-800 p-3 sm:p-5 rounded-xl sm:rounded-2xl font-black text-xl sm:text-2xl border-2 border-green-500/40 focus:border-green-400 focus:outline-none transition-all">
+                            <label className="text-xs sm:text-sm text-slate-300 mb-2 block font-bold">Sour Apples</label>
+                            <select value={numBadApples} onChange={e => setNumBadApples(Number(e.target.value))} disabled={!user} className="w-full bg-slate-800 p-2.5 sm:p-3 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl font-black text-base sm:text-lg md:text-2xl border-2 border-green-500/40 focus:border-green-400 focus:outline-none transition-all">
                                 {[1, 3, 5, 10, 15, 20, 24].map(n => <option key={n} value={n}>{n} Sour</option>)}
                             </select>
                          </div>
                      </div>
                      <QuickBetButtons wager={wager} setWager={setWager} balance={balance} disabled={!user} />
                      {user ? (
-                        <button onClick={startGame} disabled={wager <= 0 || wager > balance} className="w-full mt-4 bg-gradient-to-r from-green-500 via-emerald-500 to-green-500 text-white p-4 sm:p-6 rounded-2xl text-2xl sm:text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-green-500/50 disabled:opacity-50 disabled:hover:scale-100 transition-all">
-                            START PICKING
-                        </button>
+                        <motion.button 
+                            onClick={startGame} 
+                            disabled={wager <= 0 || wager > balance}
+                            whileTap={{ scale: wager <= 0 || wager > balance ? 1 : 0.95 }}
+                            className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-green-500 via-emerald-500 to-green-500 text-white p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl text-lg sm:text-2xl md:text-3xl font-black shadow-2xl disabled:opacity-50 disabled:hover:scale-100 transition-all touch-manipulation active:scale-95"
+                        >
+                            START PICKING 🍎
+                        </motion.button>
                      ) : (
-                         <button onClick={promptLogin} className="w-full mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-6 rounded-2xl text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all">
+                         <button onClick={promptLogin} className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all touch-manipulation">
                             Sign In to Pick
                         </button>
                      )}
                 </div>
             ) : (
                 <div className="w-full">
-                    <div className="text-center mb-4 p-4 sm:p-6 glass-effect rounded-2xl border-2 border-green-400/30">
-                        <div className="text-sm text-green-300 mb-1 font-bold">Current Multiplier</div>
-                        <div className="text-4xl sm:text-6xl font-black text-green-400 mb-2 tabular-nums">{currentMultiplier}x</div>
-                        <div className="text-md sm:text-lg text-amber-300 font-bold">Next: {calculateMultiplier(goodApplesFound + 1)}x</div>
-                        <div className="text-sm text-slate-400 mt-2">Good Apples: {goodApplesFound}</div>
+                    <div className="text-center mb-3 sm:mb-4 p-3 sm:p-4 md:p-6 glass-effect rounded-xl sm:rounded-2xl border-2 border-green-400/30">
+                        <div className="text-xs sm:text-sm text-green-300 mb-1 font-bold">Current Multiplier</div>
+                        <div className="text-3xl sm:text-5xl md:text-6xl font-black text-green-400 mb-2 tabular-nums">{currentMultiplier}x</div>
+                        <div className="text-sm sm:text-base md:text-lg text-amber-300 font-bold">Next: {calculateMultiplier(goodApplesFound + 1)}x</div>
+                        <div className="text-xs sm:text-sm text-slate-400 mt-2">Good Apples: {goodApplesFound}</div>
                     </div>
-                    <button onClick={cashOut} disabled={goodApplesFound === 0} className="w-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-900 p-4 sm:p-6 rounded-2xl text-2xl sm:text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 disabled:opacity-50 disabled:hover:scale-100 transition-all animate-glow">
+                    <motion.button 
+                        onClick={cashOut} 
+                        disabled={goodApplesFound === 0}
+                        whileTap={{ scale: goodApplesFound === 0 ? 1 : 0.95 }}
+                        className="w-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-900 p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl text-lg sm:text-2xl md:text-3xl font-black shadow-2xl disabled:opacity-50 disabled:hover:scale-100 transition-all animate-glow touch-manipulation active:scale-95"
+                    >
                         CASH OUT +${(wager * currentMultiplier).toFixed(2)}
-                    </button>
+                    </motion.button>
                 </div>
             )}
         </div>
     );
 };
 
-// --- Authentication Modal ---
+// --- Authentication Modal (Mobile Optimized) ---
 const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
     
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTZm6aXwsv4kJ2TZqsT8LWO-3Wqvrr3PPZYj87eWp_gQBTKEJBijJYsYRZUPWWa22B/exec';
@@ -1364,58 +1453,57 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/70 z-40 flex items-center justify-center p-4"
+                className="fixed inset-0 bg-black/80 z-40 flex items-center justify-center p-3 sm:p-4"
                 onClick={onClose}
             >
                 <motion.div
-                    initial={{ y: -50, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 50, opacity: 0 }}
+                    initial={{ y: -50, opacity: 0, scale: 0.9 }}
+                    animate={{ y: 0, opacity: 1, scale: 1 }}
+                    exit={{ y: 50, opacity: 0, scale: 0.9 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    className="glass-effect rounded-3xl p-8 border-2 border-violet-500/30 premium-shadow w-full max-w-sm"
+                    className="glass-effect rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-violet-500/30 premium-shadow w-full max-w-sm shadow-2xl"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <h2 className="text-3xl font-black text-center mb-2 text-amber-300">{isLogin ? 'Welcome Back!' : 'Create Account'}</h2>
-                    <p className="text-center text-slate-400 mb-6">{isLogin ? 'Enter your credentials to play.' : 'Join the fun in just a few seconds.'}</p>
+                    <h2 className="text-2xl sm:text-3xl font-black text-center mb-2 text-amber-300">{isLogin ? 'Welcome Back!' : 'Create Account'}</h2>
+                    <p className="text-center text-slate-400 text-sm sm:text-base mb-4 sm:mb-6">{isLogin ? 'Enter your credentials to play.' : 'Join the fun in just a few seconds.'}</p>
                     
                     <form onSubmit={handleSubmit}>
-                        <div className="mb-4">
-                            <label className="block text-slate-300 text-sm font-bold mb-2">Chef Name</label>
+                        <div className="mb-3 sm:mb-4">
+                            <label className="block text-slate-300 text-xs sm:text-sm font-bold mb-2">Chef Name</label>
                             <input 
                                 type="text"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                className="w-full bg-slate-800 p-3 rounded-xl border-2 border-violet-500/40 shadow-inner focus:border-violet-400 focus:outline-none transition-all"
+                                className="w-full bg-slate-800 p-2.5 sm:p-3 rounded-lg sm:rounded-xl border-2 border-violet-500/40 shadow-inner focus:border-violet-400 focus:outline-none transition-all text-sm sm:text-base"
                                 placeholder="e.g., GordonRamsay"
                             />
                         </div>
-                        <div className="mb-6">
-                            <label className="block text-slate-300 text-sm font-bold mb-2">4-Digit PIN</label>
+                        <div className="mb-4 sm:mb-6">
+                            <label className="block text-slate-300 text-xs sm:text-sm font-bold mb-2">4-Digit PIN</label>
                             <input 
                                 type="password"
                                 value={pin}
                                 maxLength="4"
                                 onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                                className="w-full bg-slate-800 p-3 rounded-xl border-2 border-violet-500/40 shadow-inner focus:border-violet-400 focus:outline-none transition-all"
+                                className="w-full bg-slate-800 p-2.5 sm:p-3 rounded-lg sm:rounded-xl border-2 border-violet-500/40 shadow-inner focus:border-violet-400 focus:outline-none transition-all text-sm sm:text-base"
                                 placeholder="****"
                             />
                         </div>
 
-                        {error && <p className="text-red-400 text-sm text-center mb-4">{error}</p>}
+                        {error && <p className="text-red-400 text-xs sm:text-sm text-center mb-3 sm:mb-4">{error}</p>}
 
                         <motion.button 
-                            whileHover={{ scale: 1.03 }}
-                            whileTap={{ scale: 0.98 }}
+                            whileTap={{ scale: 0.95 }}
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 p-4 rounded-xl text-lg font-black shadow-lg hover:shadow-amber-500/40 disabled:opacity-50 transition-all"
+                            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 p-3 sm:p-4 rounded-lg sm:rounded-xl text-base sm:text-lg font-black shadow-lg hover:shadow-amber-500/40 disabled:opacity-50 transition-all touch-manipulation active:scale-95"
                         >
-                            {isLoading ? <span className="animate-pulse">...</span> : (isLogin ? 'Login' : 'Sign Up')}
+                            {isLoading ? <span className="animate-pulse">...</span> : (isLogin ? 'Login 🎮' : 'Sign Up 🎮')}
                         </motion.button>
                     </form>
 
-                    <div className="text-center mt-6">
-                        <button onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-sm text-slate-400 hover:text-amber-300 transition-colors">
+                    <div className="text-center mt-4 sm:mt-6">
+                        <button onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-xs sm:text-sm text-slate-400 hover:text-amber-300 transition-colors touch-manipulation">
                             {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login"}
                         </button>
                     </div>
@@ -1536,7 +1624,7 @@ export default function App() {
 
 
     return (
-        <main className="main-bg text-white min-h-screen p-4 flex flex-col items-center relative overflow-hidden">
+        <main className="main-bg text-white min-h-screen p-2 sm:p-4 flex flex-col items-center relative overflow-hidden">
             <style>{premiumStyles}</style>
             
             <AuthModal 
@@ -1546,88 +1634,114 @@ export default function App() {
             />
 
             <div className="fixed inset-0 opacity-10 pointer-events-none">
-                <div className="absolute -top-40 -left-40 w-96 h-96 bg-violet-600 rounded-full blur-3xl animate-float"></div>
-                <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-cyan-600 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
-                <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-rose-600 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
+                <div className="absolute -top-40 -left-40 w-64 h-64 sm:w-96 sm:h-96 bg-violet-600 rounded-full blur-3xl animate-float"></div>
+                <div className="absolute -bottom-40 -right-40 w-64 h-64 sm:w-96 sm:h-96 bg-cyan-600 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+                <div className="absolute top-1/2 left-1/2 w-64 h-64 sm:w-96 sm:h-96 bg-rose-600 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
             </div>
 
-            <header className="w-full max-w-6xl mb-6 glass-effect p-4 rounded-2xl shadow-2xl z-20 animate-slide-up">
-                <div className="flex justify-between items-center flex-wrap gap-4">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-400 to-violet-400">Gourmet Fun</h1>
+            <header className="w-full max-w-6xl mb-4 sm:mb-6 glass-effect p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-2xl z-20 animate-slide-up">
+                <div className="flex justify-between items-center flex-wrap gap-2 sm:gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-400 to-violet-400">Gourmet Fun</h1>
                         {!showSelection && (
-                            <button onClick={backToSelection} className="text-slate-300 hover:text-white bg-slate-800/50 hover:bg-slate-700/50 p-2.5 rounded-full transition-all">
+                            <motion.button 
+                                onClick={backToSelection}
+                                whileTap={{ scale: 0.9 }}
+                                className="text-slate-300 hover:text-white bg-slate-800/50 hover:bg-slate-700/50 p-2 sm:p-2.5 rounded-full transition-all touch-manipulation active:scale-90"
+                            >
                                 <BackIcon />
-                            </button>
+                            </motion.button>
                         )}
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                          {user ? (
                              <>
                                 <PlayerRank totalWagered={totalWagered} />
-                                <div className="text-lg sm:text-2xl font-black bg-gradient-to-r from-slate-800 to-slate-900 px-4 py-2 sm:px-6 sm:py-3 rounded-full border-2 border-amber-300/30 shadow-inner flex items-center gap-2 tabular-nums">
+                                <div className="text-sm sm:text-lg md:text-2xl font-black bg-gradient-to-r from-slate-800 to-slate-900 px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-full border-2 border-amber-300/30 shadow-inner flex items-center gap-1.5 sm:gap-2 tabular-nums">
                                      <LoyaltyPointsIcon /> <AnimatedBalance value={balance} />
                                 </div>
-                                <button onClick={handleLogout} className="text-slate-300 hover:text-white bg-slate-800/50 hover:bg-slate-700/50 p-2.5 rounded-full transition-all">
+                                <motion.button 
+                                    onClick={handleLogout}
+                                    whileTap={{ scale: 0.9 }}
+                                    className="text-slate-300 hover:text-white bg-slate-800/50 hover:bg-slate-700/50 p-2 sm:p-2.5 rounded-full transition-all touch-manipulation active:scale-90"
+                                >
                                     <LogoutIcon />
-                                </button>
+                                </motion.button>
                              </>
                          ) : (
                             <motion.button 
-                                whileHover={{ scale: 1.05 }}
+                                whileHover={{ scale: 1.03 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setIsAuthModalOpen(true)}
-                                className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 px-6 py-3 rounded-xl font-black shadow-lg"
+                                className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 px-4 py-2 sm:px-6 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-black shadow-lg touch-manipulation active:scale-90"
                             >
                                 Login / Sign Up
                             </motion.button>
                          )}
-                        <button onClick={toggleMute} className="text-slate-400 hover:text-amber-300 bg-slate-800/50 hover:bg-slate-700/50 p-3 rounded-full transition-all shadow-lg hover:scale-110">{isMuted ? '🔇' : '🔊'}</button>
+                        <motion.button 
+                            onClick={toggleMute}
+                            whileTap={{ scale: 0.9 }}
+                            className="text-slate-400 hover:text-amber-300 bg-slate-800/50 hover:bg-slate-700/50 p-2 sm:p-3 rounded-full transition-all shadow-lg touch-manipulation active:scale-90 text-lg sm:text-xl"
+                        >
+                            {isMuted ? '🔇' : '🔊'}
+                        </motion.button>
                     </div>
                 </div>
             </header>
 
             {showSelection ? (
-                <div className="w-full max-w-6xl z-10 animate-fade-in">
-                    <div className="text-center mb-8">
-                        <h2 className="text-4xl sm:text-5xl font-black mb-3 text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-rose-300">Choose Your Game</h2>
+                <div className="w-full max-w-6xl z-10 animate-fade-in px-2 sm:px-0">
+                    <div className="text-center mb-6 sm:mb-8">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-2 sm:mb-3 text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-rose-300">Choose Your Game</h2>
+                        <p className="text-slate-400 text-sm sm:text-base">Tap a game to start playing</p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                         {navItems.map((item, index) => (
-                            <div
+                            <motion.div
                                 key={item.id}
-                                className="group relative rounded-3xl overflow-hidden aspect-[3/4] premium-shadow animate-scale-in"
-                                style={{animationDelay: `${index * 0.1}s`}}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                className="group relative rounded-2xl sm:rounded-3xl overflow-hidden aspect-[3/4] premium-shadow touch-manipulation"
                             >
-                                <img src={item.icon} alt={item.label} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                                <button onClick={() => selectGame(item.id)} className="relative h-full w-full flex flex-col justify-end p-8 text-left">
-                                    <h3 className="text-3xl font-black mb-1 text-white">{item.label}</h3>
-                                    <p className="text-slate-300 mb-4 text-sm">{item.desc}</p>
-                                    <div className={`self-start px-6 py-3 rounded-full bg-gradient-to-r ${item.color} text-white font-bold text-sm shadow-lg group-hover:shadow-2xl transition-all`}>
+                                <img src={item.icon} alt={item.label} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-active:scale-110" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
+                                <motion.button 
+                                    onClick={() => selectGame(item.id)}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="relative h-full w-full flex flex-col justify-end p-5 sm:p-8 text-left touch-manipulation active:scale-95 transition-transform"
+                                >
+                                    <h3 className="text-2xl sm:text-3xl font-black mb-1 text-white drop-shadow-lg">{item.label}</h3>
+                                    <p className="text-slate-300 mb-3 sm:mb-4 text-xs sm:text-sm">{item.desc}</p>
+                                    <div className={`self-start px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-gradient-to-r ${item.color} text-white font-bold text-xs sm:text-sm shadow-lg group-active:shadow-2xl transition-all`}>
                                         Play Now →
                                     </div>
-                                </button>
-                            </div>
+                                </motion.button>
+                            </motion.div>
                         ))}
                     </div>
                 </div>
             ) : (
-                <div className="w-full z-10 animate-slide-up">
+                <div className="w-full z-10 animate-slide-up px-2 sm:px-0">
                     {gameComponents[activeGame]}
                 </div>
             )}
             
-            {!audioInitialized && <div className="fixed bottom-6 right-6 glass-effect text-white px-6 py-4 rounded-xl shadow-2xl animate-pulse z-50 border border-amber-300/50">
-                <div className="flex items-center gap-3">
-                    <div className="text-2xl">🔊</div>
-                    <div>
-                        <div className="font-bold">Enable Sound</div>
-                        <div className="text-sm text-slate-300">Click anywhere to activate audio</div>
+            {!audioInitialized && (
+                <motion.div 
+                    initial={{ y: 100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    className="fixed bottom-4 sm:bottom-6 left-4 right-4 sm:left-auto sm:right-6 glass-effect text-white px-4 py-3 sm:px-6 sm:py-4 rounded-xl sm:rounded-xl shadow-2xl animate-pulse z-50 border border-amber-300/50 max-w-sm sm:max-w-none mx-auto sm:mx-0"
+                >
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="text-xl sm:text-2xl">🔊</div>
+                        <div>
+                            <div className="font-bold text-sm sm:text-base">Enable Sound</div>
+                            <div className="text-xs sm:text-sm text-slate-300">Tap anywhere to activate audio</div>
+                        </div>
                     </div>
-                </div>
-            </div>}
+                </motion.div>
+            )}
         </main>
     );
 }
-
