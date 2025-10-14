@@ -3,7 +3,8 @@
     "allow": [
       "Bash(node calculate-rtp.js)",
       "Bash(node rtp-analysis.js)",
-      "Bash(node candy-drop-rtp.js)"
+      "Bash(node candy-drop-rtp.js)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

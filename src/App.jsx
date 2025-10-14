@@ -324,6 +324,7 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
     const [showConfetti, setShowConfetti] = useState(false);
     const [winningLines, setWinningLines] = useState([]);
     const [isInfoOpen, setIsInfoOpen] = useState(false);
+    const [recentSpins, setRecentSpins] = useState([]);
     const reelRefs = useRef([]);
     const [visualReelStrips, setVisualReelStrips] = useState(Array(REELS_COUNT).fill([]));
 
@@ -468,14 +469,23 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
                 setBalance(prev => prev + totalWinnings);
                 setLastWin(totalWinnings);
                 setWinningLines(Array.from(winningLineIndices));
-                if (totalWinnings >= wager * 10) { 
-                    setShowConfetti(true); 
-                    playSound('playBigWin'); 
-                    setTimeout(() => setShowConfetti(false), 4000); 
-                } else { 
-                    playSound('playWin', totalWinnings); 
+                if (totalWinnings >= wager * 10) {
+                    setShowConfetti(true);
+                    playSound('playBigWin');
+                    setTimeout(() => setShowConfetti(false), 4000);
+                } else {
+                    playSound('playWin', totalWinnings);
                 }
             }
+
+            // Stake-style: Track recent spins
+            setRecentSpins(prev => [{
+                id: Date.now(),
+                wager,
+                payout: totalWinnings,
+                multiplier: totalWinnings / wager
+            }, ...prev].slice(0, 10));
+
             logGameResult('Fruit Frenzy', wager, totalWinnings);
             setShowResult(true);
             setSpinning(false);
@@ -483,35 +493,38 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
     };
 
     return (
-        <div className="flex flex-col items-center p-3 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-violet-500/30 premium-shadow animate-scale-in relative">
+        <div className="flex flex-col items-center p-3 sm:p-6 bg-gradient-to-br from-slate-950 via-gray-950 to-slate-950 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border border-violet-500/20 animate-scale-in relative">
             <InfoIcon onClick={() => setIsInfoOpen(true)} />
-            <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Fruit Frenzy Info">
-                <h3 className="font-bold text-lg sm:text-xl text-white">How to Play</h3>
-                <p className="text-sm sm:text-base">Set your bet amount and press SPIN. Win by matching 3 or more symbols from left to right on any of the 3 paylines (top, middle, bottom).</p>
-                <h3 className="font-bold text-lg sm:text-xl text-white mt-4">Paytable</h3>
-                <div className="space-y-2">
+            <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Fruit Frenzy">
+                <h3 className="font-bold text-base sm:text-lg text-white mb-2">How to Play</h3>
+                <p className="text-xs sm:text-sm mb-4">Match 3+ symbols left-to-right on any payline to win.</p>
+                <h3 className="font-bold text-base sm:text-lg text-white mb-2">Paytable</h3>
+                <div className="space-y-1.5">
                     {Object.entries(PAYTABLE).map(([symbolKey, payouts]) => (
-                        <div key={symbolKey} className="flex items-center justify-between bg-slate-900/50 p-2 rounded-lg">
-                            <img src={SYMBOLS[symbolKey].src} alt={symbolKey} className="w-10 h-10 sm:w-12 sm:h-12" />
-                            <div className="flex gap-2 sm:gap-4 text-right text-xs sm:text-sm">
-                                <div><span className="font-bold">5x:</span> <span className="text-amber-300">{payouts[5]}x</span></div>
-                                <div><span className="font-bold">4x:</span> <span className="text-amber-300">{payouts[4]}x</span></div>
-                                <div><span className="font-bold">3x:</span> <span className="text-amber-300">{payouts[3]}x</span></div>
+                        <div key={symbolKey} className="flex items-center justify-between bg-slate-900/40 p-2 rounded-lg">
+                            <img src={SYMBOLS[symbolKey].src} alt={symbolKey} className="w-8 h-8 sm:w-10 sm:h-10" />
+                            <div className="flex gap-3 text-right text-xs sm:text-sm">
+                                <div><span className="text-slate-400">5×</span> <span className="text-green-400 font-bold">{payouts[5]}×</span></div>
+                                <div><span className="text-slate-400">4×</span> <span className="text-green-400 font-bold">{payouts[4]}×</span></div>
+                                <div><span className="text-slate-400">3×</span> <span className="text-green-400 font-bold">{payouts[3]}×</span></div>
                             </div>
                         </div>
                     ))}
                 </div>
-                <div className="mt-4 p-3 bg-violet-500/20 rounded-lg border border-violet-500/30">
-                    <p className="text-xs sm:text-sm text-center text-violet-200">💡 Aces & 7s pay out most frequently!</p>
-                </div>
             </InfoModal>
             <Confetti show={showConfetti} />
-            <div className="w-full bg-gradient-to-b from-violet-900/50 via-black to-black rounded-2xl sm:rounded-3xl p-3 sm:p-6 mb-4 sm:mb-6 border-2 sm:border-4 border-violet-500/50 shadow-2xl relative overflow-hidden">
-                <div className="shimmer absolute inset-0"></div>
-                <div className="bg-slate-900/50 rounded-xl sm:rounded-2xl p-2 sm:p-5 flex justify-center gap-1 sm:gap-3 overflow-hidden h-[240px] sm:h-[260px] relative">
-                     {winningLines.includes(0) && <div className="absolute top-[40px] left-0 w-full h-1 bg-amber-300 z-20 animate-pulse-glow"></div>}
-                     {winningLines.includes(1) && <div className="absolute top-1/2 left-0 w-full h-1 bg-amber-300 -translate-y-1/2 z-20 animate-pulse-glow"></div>}
-                     {winningLines.includes(2) && <div className="absolute bottom-[40px] left-0 w-full h-1 bg-amber-300 z-20 animate-pulse-glow"></div>}
+
+            {/* Stake-style header */}
+            <div className="w-full flex justify-between items-center mb-3 sm:mb-4">
+                <div className="text-base sm:text-xl font-bold text-white">Fruit Frenzy</div>
+                <div className="text-xs sm:text-sm text-slate-400 bg-slate-800/50 px-3 py-1 rounded-full">RTP 90%</div>
+            </div>
+            {/* Reels Section */}
+            <div className="w-full bg-slate-900/40 rounded-xl sm:rounded-2xl p-2 sm:p-4 mb-3 sm:mb-4 border border-slate-700/30 relative overflow-hidden">
+                <div className="bg-black/40 rounded-lg sm:rounded-xl p-2 sm:p-4 flex justify-center gap-1 sm:gap-2 overflow-hidden h-[240px] sm:h-[260px] relative">
+                     {winningLines.includes(0) && <div className="absolute top-[40px] left-0 w-full h-1 bg-green-400 z-20 animate-pulse-glow shadow-lg shadow-green-400/50"></div>}
+                     {winningLines.includes(1) && <div className="absolute top-1/2 left-0 w-full h-1 bg-green-400 -translate-y-1/2 z-20 animate-pulse-glow shadow-lg shadow-green-400/50"></div>}
+                     {winningLines.includes(2) && <div className="absolute bottom-[40px] left-0 w-full h-1 bg-green-400 z-20 animate-pulse-glow shadow-lg shadow-green-400/50"></div>}
                     {visualReelStrips.map((strip, i) => (
                         <div key={i} className="w-1/5 h-full overflow-hidden">
                             <div ref={el => reelRefs.current[i] = el} style={{ transform: 'translateY(0px)' }} className="relative">
@@ -524,37 +537,82 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
                         </div>
                     ))}
                 </div>
-                 {showResult && lastWin > 0 && (
-                    <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-20 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
-                        <div className="text-center animate-bounce-in px-4">
-                            <div className="text-4xl sm:text-7xl font-black text-amber-300 animate-neon mb-2">WIN!</div>
-                            <div className="text-3xl sm:text-5xl font-black text-green-300 animate-pulse-glow">+${lastWin.toFixed(2)}</div>
-                            <div className="text-base sm:text-xl text-amber-200 mt-2">{(lastWin/wager).toFixed(2)}x</div>
-                        </div>
-                    </div>
-                )}
+                {/* Stake-style instant result overlay */}
+                <AnimatePresence>
+                    {showResult && lastWin > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="absolute inset-0 bg-black/85 flex items-center justify-center z-20 backdrop-blur-md rounded-xl sm:rounded-2xl"
+                        >
+                            <div className="text-center px-4">
+                                <motion.div
+                                    initial={{ y: 20 }}
+                                    animate={{ y: 0 }}
+                                    className="text-3xl sm:text-6xl font-black text-green-400 mb-2"
+                                >
+                                    +${lastWin.toFixed(2)}
+                                </motion.div>
+                                <div className="text-base sm:text-2xl text-slate-300">{(lastWin/wager).toFixed(2)}× Win</div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
-             <div className="w-full">
-                <div className="flex justify-between items-center mb-2">
-                    <label className="text-xs sm:text-sm text-slate-300 font-bold">Bet Amount</label>
+
+            {/* Recent Spins - Stake Style */}
+            {recentSpins.length > 0 && (
+                <div className="w-full mb-3 sm:mb-4">
+                    <div className="text-xs sm:text-sm text-slate-400 mb-2 font-semibold">Recent Spins</div>
+                    <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        {recentSpins.map((spin) => (
+                            <div
+                                key={spin.id}
+                                className={`flex-shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
+                                    spin.payout > spin.wager ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+                                    spin.payout === spin.wager ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' :
+                                    'bg-slate-800/50 text-slate-400 border border-slate-700/30'
+                                }`}
+                            >
+                                {spin.payout > 0 ? `${spin.multiplier.toFixed(2)}×` : '0×'}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Controls Section */}
+             <div className="w-full space-y-2 sm:space-y-3">
+                <div className="flex justify-between items-center">
+                    <label className="text-xs sm:text-sm text-slate-300 font-semibold">Bet Amount</label>
                     <div className="text-xs text-slate-400">Balance: ${balance.toFixed(2)}</div>
                 </div>
-                <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={spinning || !user} className="w-full bg-slate-800 p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 border-violet-500/40 text-lg sm:text-2xl font-black shadow-inner mb-2 sm:mb-3 focus:border-violet-400 focus:outline-none transition-all"/>
+                <input
+                    type="number"
+                    value={wager}
+                    onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))}
+                    disabled={spinning || !user}
+                    className="w-full bg-slate-800/50 p-3 sm:p-4 rounded-lg sm:rounded-xl border border-slate-700/50 text-base sm:text-xl font-bold shadow-inner focus:border-violet-500/50 focus:outline-none transition-all text-white"
+                />
                 <QuickBetButtons wager={wager} setWager={setWager} balance={balance} disabled={spinning || !user} />
-                
+
                 {user ? (
-                    <motion.button 
-                        onClick={spin} 
+                    <motion.button
+                        onClick={spin}
                         disabled={spinning || wager <= 0 || wager > balance}
-                        whileHover={{ scale: spinning ? 1 : 1.02 }}
+                        whileHover={{ scale: spinning ? 1 : 1.01 }}
                         whileTap={{ scale: spinning ? 1 : 0.98 }}
-                        className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-violet-600 via-violet-500 to-violet-600 text-white p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl disabled:opacity-50 disabled:hover:scale-100 transition-all touch-manipulation active:scale-95"
+                        className="w-full bg-gradient-to-r from-violet-600 to-violet-500 text-white p-4 sm:p-5 rounded-lg sm:rounded-xl text-base sm:text-xl font-bold shadow-lg disabled:opacity-40 disabled:hover:scale-100 transition-all touch-manipulation"
                     >
-                        {spinning ? <span className="animate-pulse">SPINNING...</span> : 'SPIN 🎰'}
+                        {spinning ? 'SPINNING...' : 'BET'}
                     </motion.button>
                 ) : (
-                    <button onClick={promptLogin} className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all touch-manipulation">
-                        Sign In to Spin
+                    <button
+                        onClick={promptLogin}
+                        className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white p-4 sm:p-5 rounded-lg sm:rounded-xl text-base sm:text-xl font-bold shadow-lg hover:scale-[1.01] transition-all touch-manipulation"
+                    >
+                        Sign In to Play
                     </button>
                 )}
             </div>
@@ -573,6 +631,7 @@ const SugarScratch = ({ balance, setBalance, playSound, logGameResult, user, pro
     const [showConfetti, setShowConfetti] = useState(false);
     const [revealed, setRevealed] = useState(false);
     const [isInfoOpen, setIsInfoOpen] = useState(false);
+    const [recentGames, setRecentGames] = useState([]);
 
     const PAYOUTS = { 1: 0.5, 2: 2, 3: 5, 4: 25 };
 
@@ -663,7 +722,7 @@ const SugarScratch = ({ balance, setBalance, playSound, logGameResult, user, pro
 
         setTotalWin(finalWinnings);
         setRevealed(true);
-        
+
         if (finalWinnings > 0) {
             setBalance(prev => prev + finalWinnings);
             if (finalWinnings >= wager * 10) {
@@ -673,25 +732,41 @@ const SugarScratch = ({ balance, setBalance, playSound, logGameResult, user, pro
                 playSound('playWin', finalWinnings);
             }
         }
+
+        // Stake-style: Track recent games
+        setRecentGames(prev => [{
+            id: Date.now(),
+            wager,
+            payout: finalWinnings,
+            multiplier: finalWinnings / wager,
+            matches: matchCount
+        }, ...prev].slice(0, 10));
+
         logGameResult('Sugar Scratch', wager, finalWinnings);
         setTimeout(() => setPlaying(false), 3000);
-    }, [playerNumbers, winningNumbers, setBalance, playSound, logGameResult, wager]);
+    }, [playerNumbers, winningNumbers, setBalance, playSound, logGameResult, wager, PAYOUTS]);
 
     return (
-        <div className="flex flex-col items-center p-3 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-pink-500/30 premium-shadow animate-scale-in relative">
+        <div className="flex flex-col items-center p-3 sm:p-6 bg-gradient-to-br from-slate-950 via-gray-950 to-slate-950 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border border-pink-500/20 animate-scale-in relative">
             <InfoIcon onClick={() => setIsInfoOpen(true)} />
-            <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Sugar Scratch Info">
-                <h3 className="font-bold text-lg sm:text-xl text-white">How to Play</h3>
-                <p className="text-sm sm:text-base">Buy a card for the selected bet amount. Scratch all 12 spots on your card. Match your numbers to any of the 4 winning numbers to win a prize!</p>
-                <h3 className="font-bold text-lg sm:text-xl text-white mt-4">Payouts</h3>
-                <ul className="list-disc list-inside space-y-1 text-sm sm:text-base">
-                    <li>Match 1 Number: <span className="font-bold text-amber-300">0.5x</span> your bet</li>
-                    <li>Match 2 Numbers: <span className="font-bold text-amber-300">2x</span> your bet</li>
-                    <li>Match 3 Numbers: <span className="font-bold text-amber-300">5x</span> your bet</li>
-                    <li>Match 4 Numbers: <span className="font-bold text-amber-300">25x</span> your bet</li>
+            <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Sugar Scratch">
+                <h3 className="font-bold text-base sm:text-lg text-white mb-2">How to Play</h3>
+                <p className="text-xs sm:text-sm mb-4">Scratch 12 spots. Match numbers to win prizes!</p>
+                <h3 className="font-bold text-base sm:text-lg text-white mb-2">Payouts</h3>
+                <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm">
+                    <li>Match 1: <span className="font-bold text-green-400">0.5×</span></li>
+                    <li>Match 2: <span className="font-bold text-green-400">2×</span></li>
+                    <li>Match 3: <span className="font-bold text-green-400">5×</span></li>
+                    <li>Match 4: <span className="font-bold text-green-400">25×</span></li>
                 </ul>
             </InfoModal>
             <Confetti show={showConfetti} />
+
+            {/* Stake-style header */}
+            <div className="w-full flex justify-between items-center mb-3 sm:mb-4">
+                <div className="text-base sm:text-xl font-bold text-white">Sugar Scratch</div>
+                <div className="text-xs sm:text-sm text-slate-400 bg-slate-800/50 px-3 py-1 rounded-full">RTP 90%</div>
+            </div>
             <div className="w-full glass-effect p-3 sm:p-4 rounded-xl sm:rounded-2xl mb-3 sm:mb-4 text-center">
                 <h3 className="text-base sm:text-xl font-bold text-amber-300 mb-2">Winning Numbers</h3>
                 <div className="flex justify-center gap-2 sm:gap-4">
@@ -723,7 +798,7 @@ const SugarScratch = ({ balance, setBalance, playSound, logGameResult, user, pro
                 )}
                 
                 {playing && !revealed && (
-                    <motion.button 
+                    <motion.button
                         onClick={revealAll}
                         whileTap={{ scale: 0.95 }}
                         className="w-full bg-amber-400 text-slate-900 p-2.5 sm:p-3 rounded-lg sm:rounded-xl mb-2 sm:mb-3 font-bold text-sm sm:text-base touch-manipulation active:scale-95"
@@ -732,25 +807,58 @@ const SugarScratch = ({ balance, setBalance, playSound, logGameResult, user, pro
                     </motion.button>
                 )}
 
+                {/* Recent Games - Stake Style */}
+                {recentGames.length > 0 && !playing && (
+                    <div className="w-full mb-3 sm:mb-4">
+                        <div className="text-xs sm:text-sm text-slate-400 mb-2 font-semibold">Recent Games</div>
+                        <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                            {recentGames.map((game) => (
+                                <div
+                                    key={game.id}
+                                    className={`flex-shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
+                                        game.payout > game.wager ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+                                        game.payout === game.wager ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' :
+                                        'bg-slate-800/50 text-slate-400 border border-slate-700/30'
+                                    }`}
+                                >
+                                    {game.matches > 0 ? `${game.matches} Match` : 'Loss'}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {!playing && (
                     <>
-                        <label className="text-xs sm:text-sm text-slate-300 mb-2 block font-bold">Bet Amount</label>
-                        <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={playing || !user} className="w-full bg-slate-800 p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 border-pink-500/40 text-lg sm:text-2xl font-black shadow-inner mb-2 sm:mb-3 focus:border-pink-400 focus:outline-none transition-all"/>
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="text-xs sm:text-sm text-slate-300 font-semibold">Bet Amount</label>
+                            <div className="text-xs text-slate-400">Balance: ${balance.toFixed(2)}</div>
+                        </div>
+                        <input
+                            type="number"
+                            value={wager}
+                            onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))}
+                            disabled={playing || !user}
+                            className="w-full bg-slate-800/50 p-3 sm:p-4 rounded-lg sm:rounded-xl border border-slate-700/50 text-base sm:text-xl font-bold shadow-inner focus:border-pink-500/50 focus:outline-none transition-all text-white mb-2"
+                        />
                         <QuickBetButtons wager={wager} setWager={setWager} balance={balance} disabled={playing || !user} />
                     </>
                 )}
-                
+
                  {user ? (
-                    <motion.button 
-                        onClick={playing ? null : startGame} 
+                    <motion.button
+                        onClick={playing ? null : startGame}
                         disabled={playing || balance < wager || wager <= 0}
                         whileTap={{ scale: playing ? 1 : 0.95 }}
-                        className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 text-white p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl disabled:opacity-50 disabled:hover:scale-100 transition-all touch-manipulation active:scale-95"
+                        className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-pink-600 to-pink-500 text-white p-4 sm:p-5 rounded-lg sm:rounded-xl text-base sm:text-xl font-bold shadow-lg disabled:opacity-40 disabled:hover:scale-100 transition-all touch-manipulation"
                     >
-                        {playing ? 'Good Luck! 🍀' : `Buy Card ($${wager.toFixed(2)})`}
+                        {playing ? 'Good Luck!' : 'BUY CARD'}
                     </motion.button>
                 ) : (
-                    <button onClick={promptLogin} className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all touch-manipulation">
+                    <button
+                        onClick={promptLogin}
+                        className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-green-600 to-green-500 text-white p-4 sm:p-5 rounded-lg sm:rounded-xl text-base sm:text-xl font-bold shadow-lg hover:scale-[1.01] transition-all touch-manipulation"
+                    >
                         Sign In to Play
                     </button>
                 )}
@@ -769,6 +877,7 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
     const [crashPoint, setCrashPoint] = useState(1.00);
     const [lastGameResult, setLastGameResult] = useState(null);
     const [history, setHistory] = useState([]);
+    const [recentRounds, setRecentRounds] = useState([]);
     const [countdown, setCountdown] = useState(5);
     const [placedBet, setPlacedBet] = useState(null);
     const [cashoutDisplay, setCashoutDisplay] = useState(null);
@@ -815,6 +924,16 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
         setBalance(prev => prev + winnings);
         setLastGameResult({ type: 'cashout', multiplier: currentMultiplier, winnings: winnings });
         setCashoutDisplay({ multiplier: currentMultiplier, height: (currentMultiplier - 1) * 25 });
+
+        // Stake-style: Track successful cashouts
+        setRecentRounds(prev => [{
+            id: Date.now(),
+            crashPoint: currentMultiplier,
+            didBet: true,
+            won: true,
+            cashedOut: currentMultiplier
+        }, ...prev].slice(0, 10));
+
         logGameResult('Icicle Pop', placedBet, winnings);
         setPlacedBet(null);
         if (currentMultiplier >= 10) playSound('playBigWin');
@@ -845,6 +964,15 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
                     setGameState('crashed');
                     setHistory(prev => [finalCrashPoint, ...prev.slice(0, 4)]);
                     setLastGameResult({ type: 'crash', multiplier: finalCrashPoint });
+
+                    // Stake-style: Track recent rounds
+                    setRecentRounds(prev => [{
+                        id: Date.now(),
+                        crashPoint: finalCrashPoint,
+                        didBet: !!placedBet,
+                        won: false
+                    }, ...prev].slice(0, 10));
+
                     playSound('playRocketExplode');
                     if(placedBet) {
                        logGameResult('Icicle Pop', placedBet, 0);
@@ -868,21 +996,41 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
     const rocketX = gameState === 'running' ? Math.min((multiplier - 1) * 10, 80) : 0;
 
     return (
-        <div className="flex flex-col items-center p-3 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-orange-500/30 premium-shadow animate-scale-in relative">
+        <div className="flex flex-col items-center p-3 sm:p-6 bg-gradient-to-br from-slate-950 via-gray-950 to-slate-950 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border border-orange-500/20 animate-scale-in relative">
             <InfoIcon onClick={() => setIsInfoOpen(true)} />
-            <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Icicle Pop Info">
-                <h3 className="font-bold text-lg sm:text-xl text-white">How to Play</h3>
-                <p className="text-sm sm:text-base">Place your bet before the round begins. Watch the multiplier increase as the icicle flies higher. Click "EJECT" to cash out your winnings at the current multiplier.</p>
-                <p className="mt-2 text-sm sm:text-base">Be careful! If you don't eject before the icicle "POPS!", you lose your bet. The multiplier can pop at any time.</p>
+            <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Icicle Pop">
+                <h3 className="font-bold text-base sm:text-lg text-white mb-2">How to Play</h3>
+                <p className="text-xs sm:text-sm mb-2">Place your bet before the round starts. Cash out before it crashes!</p>
+                <p className="text-xs sm:text-sm text-slate-400">The multiplier can crash at any time. Time your exit wisely!</p>
             </InfoModal>
-            <div className="w-full flex flex-wrap gap-1.5 sm:gap-2 mb-3">
-                {history.map((h, i) => (
-                    <div key={i} className={`text-xs font-bold px-2 py-1 sm:px-3 sm:py-1 rounded-md ${h >= 2 ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
-                        {h.toFixed(2)}x
-                    </div>
-                ))}
+
+            {/* Stake-style header */}
+            <div className="w-full flex justify-between items-center mb-3 sm:mb-4">
+                <div className="text-base sm:text-xl font-bold text-white">Icicle Pop</div>
+                <div className="text-xs sm:text-sm text-slate-400 bg-slate-800/50 px-3 py-1 rounded-full">RTP 99%</div>
             </div>
-            <div className="relative w-full h-72 sm:h-96 bg-gradient-to-b from-slate-950 to-gray-950 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 flex items-center justify-center overflow-hidden border-2 sm:border-4 border-orange-500/30 shadow-2xl">
+
+            {/* Recent Rounds - Stake Style */}
+            {recentRounds.length > 0 && (
+                <div className="w-full mb-3">
+                    <div className="text-xs sm:text-sm text-slate-400 mb-2 font-semibold">Recent Rounds</div>
+                    <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        {recentRounds.map((round) => (
+                            <div
+                                key={round.id}
+                                className={`flex-shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
+                                    round.won ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+                                    round.didBet ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                                    'bg-slate-800/50 text-slate-400 border border-slate-700/30'
+                                }`}
+                            >
+                                {round.crashPoint.toFixed(2)}×
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+            <div className="relative w-full h-72 sm:h-96 bg-gradient-to-b from-slate-950 to-gray-950 rounded-xl sm:rounded-2xl mb-3 sm:mb-4 flex items-center justify-center overflow-hidden border border-slate-700/30 shadow-2xl">
                 <div 
                     className="absolute inset-0 bg-cover bg-center opacity-50"
                     style={{ backgroundImage: `url('/ipbackground.png')` }}
@@ -929,30 +1077,42 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
             
             <div className="w-full">
                 {gameState === 'running' && placedBet ? (
-                    <motion.button 
+                    <motion.button
                         onClick={cashOut}
                         whileTap={{ scale: 0.95 }}
-                        className="w-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl transition-all animate-glow touch-manipulation active:scale-95"
+                        className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white p-4 sm:p-5 rounded-lg sm:rounded-xl text-base sm:text-xl font-bold shadow-lg transition-all animate-pulse-glow touch-manipulation"
                     >
-                        EJECT @ ${(placedBet * multiplier).toFixed(2)}
+                        CASH OUT ${(placedBet * multiplier).toFixed(2)}
                     </motion.button>
                 ) : (
                     <>
-                        <label className="text-xs sm:text-sm text-slate-300 mb-2 block font-bold">Bet Amount</label>
-                        <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={gameState !== 'betting' || !user || placedBet} className="w-full bg-slate-800 p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 border-orange-500/40 text-lg sm:text-2xl font-black shadow-inner mb-2 sm:mb-3 focus:border-orange-400 focus:outline-none transition-all"/>
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="text-xs sm:text-sm text-slate-300 font-semibold">Bet Amount</label>
+                            <div className="text-xs text-slate-400">Balance: ${balance.toFixed(2)}</div>
+                        </div>
+                        <input
+                            type="number"
+                            value={wager}
+                            onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))}
+                            disabled={gameState !== 'betting' || !user || placedBet}
+                            className="w-full bg-slate-800/50 p-3 sm:p-4 rounded-lg sm:rounded-xl border border-slate-700/50 text-base sm:text-xl font-bold shadow-inner focus:border-orange-500/50 focus:outline-none transition-all text-white mb-2"
+                        />
                         <QuickBetButtons wager={wager} setWager={setWager} balance={balance} disabled={gameState !== 'betting' || !user || placedBet} />
                         {user ? (
-                            <motion.button 
-                                onClick={placeBet} 
+                            <motion.button
+                                onClick={placeBet}
                                 disabled={gameState !== 'betting' || placedBet || wager <= 0 || wager > balance}
                                 whileTap={{ scale: gameState !== 'betting' || placedBet ? 1 : 0.95 }}
-                                className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-green-600 via-green-500 to-green-600 text-white p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl disabled:opacity-50 disabled:hover:scale-100 transition-all touch-manipulation active:scale-95"
+                                className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-orange-600 to-orange-500 text-white p-4 sm:p-5 rounded-lg sm:rounded-xl text-base sm:text-xl font-bold shadow-lg disabled:opacity-40 disabled:hover:scale-100 transition-all touch-manipulation"
                             >
-                                {placedBet ? `BET PLACED: $${placedBet}` : 'PLACE BET 🚀'}
+                                {placedBet ? `BET PLACED: $${placedBet}` : 'BET'}
                             </motion.button>
                         ) : (
-                             <button onClick={promptLogin} className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all touch-manipulation">
-                                Sign In to Bet
+                             <button
+                                onClick={promptLogin}
+                                className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-green-600 to-green-500 text-white p-4 sm:p-5 rounded-lg sm:rounded-xl text-base sm:text-xl font-bold shadow-lg hover:scale-[1.01] transition-all touch-manipulation"
+                            >
+                                Sign In to Play
                             </button>
                         )}
                     </>
@@ -962,281 +1122,277 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
     );
 };
 
-// --- Game: Candy Drop ---
+// --- Game: Candy Drop (Stake-style Plinko) ---
 const CandyDrop = ({ balance, setBalance, playSound, logGameResult, user, promptLogin }) => {
     const [wager, setWager] = useState(10);
+    const [risk, setRisk] = useState('medium');
     const [isDropping, setIsDropping] = useState(false);
-    const [risk, setRisk] = useState('high');
-    const [hitPegs, setHitPegs] = useState({});
-    const [showConfetti, setShowConfetti] = useState(false);
-    const [ballCount, setBallCount] = useState(1);
-    const [lastResults, setLastResults] = useState([]);
-    const [batchTotalWin, setBatchTotalWin] = useState(null);
+    const [lastResult, setLastResult] = useState(null);
+    const [recentResults, setRecentResults] = useState([]);
     const [isInfoOpen, setIsInfoOpen] = useState(false);
-    
-    const candyRefs = useRef([]);
-    const pegBoardRef = useRef(null);
-    const animationSpeed = 150;
+    const [ballPosition, setBallPosition] = useState(null);
+    const [ballPath, setBallPath] = useState([]);
+    const [hitPegs, setHitPegs] = useState(new Set());
 
-    const ROWS = 13;
-
+    const ROWS = 16;
     const MULTIPLIERS = useMemo(() => ({
         low:    [7.2, 3.9, 2.6, 1.6, 1.2, 0.8, 0.7, 0.7, 0.8, 1.2, 1.6, 2.6, 3.9, 7.2],
         medium: [31, 12.6, 5.6, 2.8, 1.1, 0.6, 0.4, 0.4, 0.6, 1.1, 2.8, 5.6, 12.6, 31],
         high:   [270, 72, 21, 3.1, 0, 0, 0, 0, 0, 0, 3.1, 21, 72, 270]
     }), []);
-    
+
     const multipliers = MULTIPLIERS[risk];
 
-    const runSingleDrop = useCallback((candyIndex, startCol) => {
-        return new Promise(resolve => {
-            if (!pegBoardRef.current) {
-                resolve({ multiplier: 0, winnings: 0, bucketIndex: Math.floor(multipliers.length / 2) });
-                return;
-            }
+    const drop = async () => {
+        if (isDropping || wager <= 0 || wager > balance) return;
 
-            let path = [{ row: -1, col: startCol }];
-            let currentCol = startCol;
-            for (let row = 0; row < ROWS; row++) {
-                currentCol += (Math.random() < 0.5 ? -0.5 : 0.5);
-                path.push({ row, col: currentCol });
-            }
-            
-            const { width, height } = pegBoardRef.current.getBoundingClientRect();
-            const rowHeight = height / (ROWS + 1);
-            const colWidth = width / (ROWS + 1);
-            const candySize = width < 400 ? 18 : 28;
-
-            const keyframes = path.map(pos => {
-                const top = (pos.row + 1.5) * rowHeight;
-                const left = (pos.col + 0.5) * colWidth - (candySize / 2);
-                return { transform: `translate(${left}px, ${top}px)` };
-            });
-
-            const candy = candyRefs.current[candyIndex];
-            if (!candy) return;
-
-            candy.style.width = `${candySize}px`;
-            candy.style.height = `${candySize}px`;
-            candy.style.opacity = 1;
-            candy.classList.add('candy-trail');
-
-            const duration = path.length * animationSpeed;
-            const candyAnimation = candy.animate(keyframes, {
-                duration: duration,
-                easing: 'ease-in',
-                fill: 'forwards'
-            });
-
-            for (let i = 1; i < path.length; i++) {
-                const step = path[i];
-                const pegRow = step.row;
-                const pegCol = Math.round(step.col); 
-                const pegId = `${pegRow}-${pegCol}`;
-
-                setTimeout(() => {
-                    playSound('playPegHit', pegRow);
-                    setHitPegs(prev => ({ ...prev, [pegId]: true }));
-                    setTimeout(() => {
-                        setHitPegs(prev => ({ ...prev, [pegId]: false }));
-                    }, 200);
-                }, i * animationSpeed);
-            }
-            
-            candyAnimation.onfinish = () => {
-                const finalCol = path[path.length - 1].col;
-                const bucketIndex = Math.floor(finalCol);
-                const safeBucketIndex = Math.max(0, Math.min(multipliers.length - 1, bucketIndex));
-                
-                const multiplier = multipliers[safeBucketIndex];
-                const winnings = wager * multiplier;
-                candy.classList.remove('candy-trail');
-                resolve({ multiplier, winnings, bucketIndex: safeBucketIndex });
-            };
-        });
-    }, [wager, multipliers, playSound, animationSpeed, ROWS]);
-
-    const dropCandies = async () => {
-        const totalWager = wager * ballCount;
-        if (totalWager <= 0 || totalWager > balance || isDropping) return;
-
-        playSound('playButtonClick');
-        setBalance(prev => prev - totalWager);
         setIsDropping(true);
-        setLastResults([]);
-        setShowConfetti(false);
-        setHitPegs({});
-        setBatchTotalWin(null);
+        setBalance(prev => prev - wager);
+        setHitPegs(new Set());
+        playSound('playButtonClick');
 
-        candyRefs.current.forEach(c => {
-            if (c) {
-                c.getAnimations().forEach(anim => anim.cancel());
-                c.style.opacity = 0;
-                c.style.transform = `translate(calc(50vw - 50%), -50px)`;
-            }
-        });
-        
-        await new Promise(res => setTimeout(res, 100));
+        // Generate plinko path
+        let position = ROWS / 2;
+        const path = [{ row: 0, col: position }];
 
-        let totalWinnings = 0;
-        const dropPromises = [];
-
-        for (let i = 0; i < ballCount; i++) {
-            const startCol = (ROWS / 2) + (i - (ballCount - 1) / 2) * 0.6;
-            dropPromises.push(runSingleDrop(i, startCol));
-            await new Promise(res => setTimeout(res, 80)); 
+        for (let i = 1; i <= ROWS; i++) {
+            const direction = Math.random() < 0.5 ? -0.5 : 0.5;
+            position += direction;
+            path.push({ row: i, col: position });
         }
 
-        const results = await Promise.all(dropPromises);
-        results.forEach(result => {
-            totalWinnings += result.winnings;
-        });
-        
-        setLastResults(results);
-        setBalance(prev => prev + totalWinnings);
-        logGameResult('Candy Drop', totalWager, totalWinnings);
+        setBallPath(path);
 
-        if (totalWinnings >= totalWager * 5) {
+        // Animate ball through path
+        for (let i = 0; i < path.length; i++) {
+            setBallPosition(path[i]);
+
+            if (i < path.length - 1) {
+                // Add peg to hit pegs for glow effect
+                setHitPegs(prev => new Set([...prev, `${path[i].row}-${path[i].col}`]));
+                playSound('playPegHit', i);
+            }
+
+            // Variable speed - faster as it falls
+            const delay = Math.max(30, 80 - i * 3);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+
+        const bucketIndex = Math.max(0, Math.min(multipliers.length - 1, Math.floor(position)));
+        const multiplier = multipliers[bucketIndex];
+        const winnings = wager * multiplier;
+
+        // Small delay before showing result
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        setBalance(prev => prev + winnings);
+        setLastResult({ bucket: bucketIndex, multiplier, winnings, id: Date.now() });
+        setRecentResults(prev => [{ bucket: bucketIndex, multiplier, winnings, id: Date.now() }, ...prev].slice(0, 10));
+
+        logGameResult('Candy Drop', wager, winnings);
+
+        if (winnings >= wager * 10) {
             playSound('playBigWin');
-            setShowConfetti(true);
-        } else if (totalWinnings > 0) {
-            playSound('playWin', totalWinnings);
+        } else if (winnings > 0) {
+            playSound('playWin', winnings);
+        } else {
+            playSound('playCrash');
         }
 
         setTimeout(() => {
             setIsDropping(false);
-            setShowConfetti(false);
-            setBatchTotalWin(totalWinnings);
-        }, 3000);
+            setLastResult(null);
+            setBallPosition(null);
+            setBallPath([]);
+            setHitPegs(new Set());
+        }, 2000);
     };
-    
+
     return (
-        <div className="flex flex-col items-center p-3 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-blue-500/30 premium-shadow animate-scale-in relative">
+        <div className="flex flex-col items-center p-3 sm:p-6 bg-gradient-to-br from-slate-950 via-gray-950 to-slate-950 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-4xl mx-auto border border-blue-500/20 animate-scale-in">
             <InfoIcon onClick={() => setIsInfoOpen(true)} />
-            <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Candy Drop Info">
-                <h3 className="font-bold text-lg sm:text-xl text-white">How to Play</h3>
-                <p className="text-sm sm:text-base">Choose your bet amount, number of candies to drop, and a risk level. Press "DROP" to release the candies from the top. You win the multiplier of the bucket the candy lands in.</p>
-                <h3 className="font-bold text-lg sm:text-xl text-white mt-4">Risk Levels</h3>
-                <p className="text-sm sm:text-base">Higher risk levels have lower odds of winning, but offer much larger potential prize multipliers.</p>
+            <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Candy Drop">
+                <h3 className="font-bold text-base sm:text-lg text-white mb-2">How to Play</h3>
+                <p className="text-xs sm:text-sm mb-4">Drop a ball that bounces randomly. Land in multiplier buckets to win!</p>
+                <div className="space-y-1.5 text-xs sm:text-sm">
+                    <div className="flex justify-between"><span>Low Risk:</span><span className="text-green-400 font-semibold">Consistent wins</span></div>
+                    <div className="flex justify-between"><span>Medium Risk:</span><span className="text-yellow-400 font-semibold">Balanced</span></div>
+                    <div className="flex justify-between"><span>High Risk:</span><span className="text-red-400 font-semibold">Extreme multipliers</span></div>
+                </div>
             </InfoModal>
-            <Confetti show={showConfetti} />
-            <div className="w-full flex justify-center gap-1.5 sm:gap-2 md:gap-3 mb-4 sm:mb-5 glass-effect p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 border-blue-400/20">
+
+            {/* Stake-style header */}
+            <div className="w-full flex justify-between items-center mb-3 sm:mb-4">
+                <div className="text-base sm:text-xl font-bold text-white">Candy Drop</div>
+                <div className="text-xs sm:text-sm text-slate-400 bg-slate-800/50 px-3 py-1 rounded-full">RTP 90%</div>
+            </div>
+
+            {/* Risk Selector */}
+            <div className="w-full flex gap-2 mb-4 sm:mb-6">
                 {['low', 'medium', 'high'].map(r => (
-                    <motion.button 
+                    <button
                         key={r}
                         onClick={() => !isDropping && setRisk(r)}
-                        whileTap={{ scale: isDropping ? 1 : 0.95 }}
-                        className={`px-3 py-2 sm:px-6 sm:py-2.5 md:px-8 md:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-black capitalize transition-all touch-manipulation active:scale-95 ${
-                            risk === r 
-                                ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white scale-105 shadow-lg shadow-blue-500/50' 
-                                : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
-                        }`}>
-                        {r} Risk
-                    </motion.button>
+                        disabled={isDropping}
+                        className={`flex-1 py-2 sm:py-3 px-4 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold uppercase transition-all ${
+                            risk === r
+                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50 scale-105'
+                                : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
+                        }`}
+                    >
+                        {r}
+                    </button>
                 ))}
             </div>
-            
-            <div className="relative w-full aspect-square bg-gradient-to-b from-slate-950 to-gray-950 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 flex flex-col justify-between p-2 sm:p-4 border-2 sm:border-4 border-blue-500/30 shadow-2xl overflow-hidden">
-                <AnimatePresence>
-                    {batchTotalWin !== null && !isDropping && (
+
+            {/* Plinko Board */}
+            <div className="w-full bg-gradient-to-b from-slate-900 to-slate-950 rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 border border-slate-700/50 relative overflow-hidden">
+                {/* Plinko Pegs */}
+                <div className="relative w-full" style={{ minHeight: '500px' }}>
+                    {Array.from({ length: ROWS }).map((_, rowIndex) => {
+                        const pegsInRow = rowIndex + 3;
+                        return (
+                            <div key={rowIndex} className="flex justify-center items-center" style={{ height: '30px' }}>
+                                {Array.from({ length: pegsInRow }).map((_, pegIndex) => {
+                                    const pegId = `${rowIndex}-${pegIndex - Math.floor(pegsInRow / 2) + ROWS / 2}`;
+                                    const isHit = hitPegs.has(pegId);
+                                    return (
+                                        <div
+                                            key={pegIndex}
+                                            className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full mx-3 sm:mx-4 transition-all duration-200 ${
+                                                isHit
+                                                    ? 'bg-blue-400 shadow-lg shadow-blue-400/80 scale-150'
+                                                    : 'bg-slate-600/50'
+                                            }`}
+                                            style={{
+                                                boxShadow: isHit ? '0 0 20px rgba(96, 165, 250, 0.8)' : 'none'
+                                            }}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        );
+                    })}
+
+                    {/* Animated Ball */}
+                    {ballPosition && (
                         <motion.div
-                            initial={{ opacity: 0, y: 50, scale: 0.5 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -50, scale: 0.5 }}
-                            transition={{ type: 'spring', damping: 15, stiffness: 200 }}
-                            className="absolute inset-0 bg-black/70 flex items-center justify-center z-30 backdrop-blur-sm rounded-2xl sm:rounded-3xl"
+                            className="absolute w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br from-yellow-300 via-amber-400 to-orange-500 shadow-lg"
+                            style={{
+                                left: `${50 + (ballPosition.col - ROWS / 2) * 7}%`,
+                                top: `${ballPosition.row * 30}px`,
+                                boxShadow: '0 0 30px rgba(251, 191, 36, 0.8), 0 0 60px rgba(251, 191, 36, 0.4)',
+                                zIndex: 10
+                            }}
+                            animate={{
+                                scale: [1, 1.2, 1],
+                            }}
+                            transition={{
+                                duration: 0.1,
+                                repeat: Infinity
+                            }}
+                        />
+                    )}
+                </div>
+
+                {/* Multiplier Buckets */}
+                <div className="flex justify-between gap-0.5 sm:gap-1 mt-4">
+                    {multipliers.map((m, i) => (
+                        <div
+                            key={i}
+                            className={`flex-1 text-center py-2 sm:py-3 rounded-t-lg text-[10px] sm:text-sm font-black transition-all duration-300 ${
+                                lastResult?.bucket === i
+                                    ? 'bg-gradient-to-t from-amber-500 to-yellow-400 text-black scale-105 shadow-lg shadow-amber-500/50'
+                                    : 'bg-slate-800/70'
+                            }`}
+                            style={{
+                                color: lastResult?.bucket === i ? '#000' :
+                                       m >= 20 ? '#10b981' :
+                                       m >= 5 ? '#22c55e' :
+                                       m >= 2 ? '#fbbf24' :
+                                       m >= 1 ? '#94a3b8' : '#ef4444',
+                                border: `1px solid ${m >= 20 ? '#10b981' : m >= 5 ? '#22c55e' : m >= 2 ? '#fbbf24' : m >= 1 ? '#475569' : '#ef4444'}`
+                            }}
                         >
-                            <div className="text-center px-4">
-                                <div className={`text-3xl sm:text-5xl md:text-6xl font-black mb-2 sm:mb-3 animate-neon ${
-                                    batchTotalWin >= (wager * ballCount) ? 'text-green-400' : 'text-amber-300'
-                                }`}>
-                                    Total Win!
-                                </div>
-                                <div className="text-2xl sm:text-4xl md:text-5xl font-black text-white">
-                                    +$<AnimatedBalance value={batchTotalWin} />
-                                </div>
+                            {m}×
+                        </div>
+                    ))}
+                </div>
+
+                {/* Result Display */}
+                <AnimatePresence>
+                    {lastResult && !ballPosition && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.5, y: -20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.5 }}
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 bg-black/90 backdrop-blur-sm rounded-2xl p-6 border-2 border-amber-400/50"
+                        >
+                            <div className={`text-4xl sm:text-6xl font-black mb-2 ${
+                                lastResult.winnings > wager ? 'text-green-400' :
+                                lastResult.winnings === wager ? 'text-yellow-400' : 'text-red-400'
+                            }`}>
+                                {lastResult.winnings > wager ? '+' : ''}${lastResult.winnings.toFixed(2)}
+                            </div>
+                            <div className="text-xl sm:text-2xl text-amber-300 font-bold">
+                                {lastResult.multiplier}× multiplier
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
-
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5"></div>
-                
-                {Array.from({ length: 10 }).map((_, i) => (
-                    <div key={i} ref={el => candyRefs.current[i] = el} className="absolute z-20" style={{ opacity: 0, width: '28px', height: '28px' }}>
-                        <div className="w-full h-full rounded-full shadow-lg" style={{ background: 'radial-gradient(circle at 30% 30%, #fde047, #f59e0b)' }}></div>
-                    </div>
-                ))}
-
-                <div ref={pegBoardRef} className="flex-grow relative -mt-2">
-                    {Array.from({ length: ROWS }).map((_, r) => (
-                        <div key={r} className="flex justify-center" style={{ marginBottom: '3.5%' }}>
-                            {Array.from({ length: r + 2 }).map((_, c) => {
-                                const pegId = `${r}-${c}`;
-                                return (
-                                    <div key={c} 
-                                        className={`w-1 h-1 sm:w-2 sm:h-2 md:w-3 md:h-3 rounded-full transition-all duration-200 ${
-                                            hitPegs[pegId] 
-                                                ? 'bg-amber-300 scale-150 shadow-lg shadow-amber-300/50' 
-                                                : 'bg-slate-500'
-                                        }`} 
-                                        style={{margin: '0 1.2%'}}
-                                    />
-                                );
-                            })}
-                        </div>
-                    ))}
-                </div>
-                
-                <div className="flex justify-center relative z-10">
-                    {multipliers.map((m, i) => {
-                        const isHit = lastResults.some(res => res.bucketIndex === i);
-                        return (
-                            <div key={i} 
-                                className={`text-[7px] sm:text-[10px] md:text-xs font-black text-center w-[calc(100%/14)] py-0.5 sm:py-1 md:py-2 rounded-md sm:rounded-lg md:rounded-xl transition-all duration-300 ${
-                                    isHit && !isDropping
-                                        ? 'scale-125 bg-amber-300/70 shadow-lg shadow-amber-300/50 animate-pulse-glow' 
-                                        : 'bg-slate-800/70'
-                                }`} 
-                                style={{ 
-                                    color: m >= 5 ? '#4ade80' : m > 1 ? '#fbbf24' : m < 1 ? '#f87171' : '#cbd5e1',
-                                    border: `1px solid ${m >= 5 ? '#4ade80' : m > 1 ? '#fbbf24' : m < 1 ? '#f87171' : '#475569'}`
-                                }}>
-                                {m}x
-                            </div>
-                        );
-                    })}
-                </div>
             </div>
-            
-            <div className="w-full">
-                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                    <div>
-                        <label className="text-xs sm:text-sm text-slate-300 mb-2 block font-bold">Bet Amount</label>
-                        <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={isDropping || !user}
-                            className="w-full bg-slate-800 p-2.5 sm:p-3 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl border-2 border-blue-500/40 text-base sm:text-lg md:text-2xl font-black shadow-inner focus:border-blue-400 focus:outline-none transition-all"/>
-                    </div>
-                    <div>
-                        <label className="text-xs sm:text-sm text-slate-300 mb-2 block font-bold">Candies</label>
-                        <select value={ballCount} onChange={e => setBallCount(Number(e.target.value))} disabled={isDropping || !user}
-                            className="w-full bg-slate-800 p-2.5 sm:p-3 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl border-2 border-blue-500/40 text-base sm:text-lg md:text-2xl font-black shadow-inner focus:border-blue-400 focus:outline-none transition-all">
-                                {[1, 5, 10].map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
+
+            {/* Recent Results */}
+            {recentResults.length > 0 && (
+                <div className="w-full mb-4 sm:mb-6">
+                    <div className="text-xs sm:text-sm text-slate-400 mb-2 font-bold">Recent Drops</div>
+                    <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-2">
+                        {recentResults.map((result) => (
+                            <div
+                                key={result.id}
+                                className={`flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold ${
+                                    result.winnings > wager ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                                    result.winnings === wager ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                                    'bg-red-500/20 text-red-400 border border-red-500/30'
+                                }`}
+                            >
+                                {result.multiplier}x
+                            </div>
+                        ))}
                     </div>
                 </div>
+            )}
+
+            {/* Controls */}
+            <div className="w-full space-y-2 sm:space-y-3">
+                <div className="flex justify-between items-center mb-2">
+                    <label className="text-xs sm:text-sm text-slate-300 font-semibold">Bet Amount</label>
+                    <div className="text-xs text-slate-400">Balance: ${balance.toFixed(2)}</div>
+                </div>
+                <input
+                    type="number"
+                    value={wager}
+                    onChange={e => setWager(Math.max(0, Math.min(balance, parseFloat(e.target.value) || 0)))}
+                    disabled={isDropping || !user}
+                    className="w-full bg-slate-800/50 p-3 sm:p-4 rounded-lg sm:rounded-xl border border-slate-700/50 text-base sm:text-xl font-bold shadow-inner focus:border-blue-500/50 focus:outline-none transition-all text-white"
+                />
+
                 <QuickBetButtons wager={wager} setWager={setWager} balance={balance} disabled={isDropping || !user} />
+
                 {user ? (
-                    <motion.button 
-                        whileTap={{ scale: isDropping ? 1 : 0.95 }}
-                        onClick={dropCandies} 
-                        disabled={isDropping || wager * ballCount <= 0 || wager * ballCount > balance} 
-                        className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 text-white p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl text-lg sm:text-xl md:text-3xl font-black shadow-2xl disabled:opacity-50 disabled:hover:scale-100 transition-all touch-manipulation active:scale-95"
+                    <button
+                        onClick={drop}
+                        disabled={isDropping || wager <= 0 || wager > balance}
+                        className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4 sm:p-5 rounded-lg sm:rounded-xl text-base sm:text-xl font-bold shadow-lg disabled:opacity-40 disabled:hover:scale-100 transition-all hover:scale-[1.01] active:scale-[0.98] touch-manipulation"
                     >
-                        {isDropping ? <span className="animate-pulse">DROPPING...</span> : `DROP ${ballCount} CAND${ballCount > 1 ? 'IES' : 'Y'} 🍬`}
-                    </motion.button>
+                        {isDropping ? 'DROPPING...' : 'DROP'}
+                    </button>
                 ) : (
-                    <button onClick={promptLogin} className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all touch-manipulation">
-                        Sign In to Drop
+                    <button
+                        onClick={promptLogin}
+                        className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white p-4 sm:p-5 rounded-lg sm:rounded-xl text-base sm:text-xl font-bold shadow-lg hover:scale-[1.01] transition-all touch-manipulation"
+                    >
+                        Sign In to Play
                     </button>
                 )}
             </div>
@@ -1255,6 +1411,7 @@ const SourApple = ({ balance, setBalance, playSound, logGameResult, user, prompt
     const [goodApplesFound, setGoodApplesFound] = useState(0);
     const [showConfetti, setShowConfetti] = useState(false);
     const [isInfoOpen, setIsInfoOpen] = useState(false);
+    const [recentGames, setRecentGames] = useState([]);
 
     const factorial = useCallback((n) => (n <= 1 ? 1 : n * factorial(n - 1)), []);
     const combinations = useCallback((n, k) => (k < 0 || k > n) ? 0 : factorial(n) / (factorial(k) * factorial(n - k)), [factorial]);
@@ -1295,6 +1452,16 @@ const SourApple = ({ balance, setBalance, playSound, logGameResult, user, prompt
             playSound('playAppleBad');
             setGameState('busted');
             logGameResult('Sour Apple', wager, 0);
+
+            // Track loss
+            setRecentGames(prev => [{
+                id: Date.now(),
+                wager,
+                payout: 0,
+                multiplier: 0,
+                applesFound: goodApplesFound
+            }, ...prev].slice(0, 10));
+
             setTimeout(() => {
                 const allBadApples = new Set();
                 grid.forEach((isBad, idx) => {
@@ -1315,6 +1482,15 @@ const SourApple = ({ balance, setBalance, playSound, logGameResult, user, prompt
         playSound('playCashout');
         logGameResult('Sour Apple', wager, winnings);
 
+        // Track win
+        setRecentGames(prev => [{
+            id: Date.now(),
+            wager,
+            payout: winnings,
+            multiplier: currentMultiplier,
+            applesFound: goodApplesFound
+        }, ...prev].slice(0, 10));
+
         if(currentMultiplier >= 10) {
             playSound('playBigWin');
             setShowConfetti(true);
@@ -1331,13 +1507,40 @@ const SourApple = ({ balance, setBalance, playSound, logGameResult, user, prompt
     const isBetting = gameState === 'betting';
 
     return (
-        <div className="flex flex-col items-center p-3 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-green-500/30 premium-shadow animate-scale-in relative">
+        <div className="flex flex-col items-center p-3 sm:p-6 bg-gradient-to-br from-slate-950 via-gray-950 to-slate-950 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border border-green-500/20 animate-scale-in relative">
             <InfoIcon onClick={() => setIsInfoOpen(true)} />
-            <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Sour Apple Info">
-                <h3 className="font-bold text-lg sm:text-xl text-white">How to Play</h3>
-                <p className="text-sm sm:text-base">Set your bet and the number of Sour Apples on the grid. Click tiles to reveal Good Apples. Each Good Apple you find increases your prize multiplier.</p>
-                <p className="mt-2 text-sm sm:text-base">You can "CASH OUT" at any time to collect your current winnings. If youreveal a Sour Apple, you lose your bet for that round.</p>
+            <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Sour Apple">
+                <h3 className="font-bold text-base sm:text-lg text-white mb-2">How to Play</h3>
+                <p className="text-xs sm:text-sm mb-2">Reveal good apples to increase your multiplier. Avoid sour apples!</p>
+                <p className="text-xs sm:text-sm text-slate-400">Cash out anytime to collect winnings. Hit a sour apple and lose everything.</p>
             </InfoModal>
+
+            {/* Stake-style header */}
+            <div className="w-full flex justify-between items-center mb-3 sm:mb-4">
+                <div className="text-base sm:text-xl font-bold text-white">Sour Apple</div>
+                <div className="text-xs sm:text-sm text-slate-400 bg-slate-800/50 px-3 py-1 rounded-full">RTP 90%</div>
+            </div>
+
+            {/* Recent Games */}
+            {recentGames.length > 0 && gameState === 'betting' && (
+                <div className="w-full mb-3 sm:mb-4">
+                    <div className="text-xs sm:text-sm text-slate-400 mb-2 font-semibold">Recent Games</div>
+                    <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        {recentGames.map((game) => (
+                            <div
+                                key={game.id}
+                                className={`flex-shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
+                                    game.payout > game.wager ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+                                    game.payout === game.wager ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' :
+                                    'bg-red-500/10 text-red-400 border border-red-500/20'
+                                }`}
+                            >
+                                {game.applesFound > 0 ? `${game.applesFound} 🍏` : 'Loss'}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
             <Confetti show={showConfetti} />
             <div className="relative w-full aspect-square bg-gradient-to-br from-slate-950 to-gray-950 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 grid grid-cols-5 gap-1.5 sm:gap-2 md:gap-3 p-2 sm:p-3 md:p-5 border-2 sm:border-4 border-green-500/30 shadow-2xl">
                 {gameState === 'busted' && (
@@ -1368,50 +1571,48 @@ const SourApple = ({ balance, setBalance, playSound, logGameResult, user, prompt
                 ))}
             </div>
             {isBetting ? (
-                 <div className="w-full">
-                     <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-2 sm:mb-3">
-                         <div>
-                            <label className="text-xs sm:text-sm text-slate-300 mb-2 block font-bold">Bet Amount</label>
-                            <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={!user} className="w-full bg-slate-800 p-2.5 sm:p-3 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl text-base sm:text-lg md:text-2xl font-black border-2 border-green-500/40 shadow-inner focus:border-green-400 focus:outline-none transition-all" />
-                         </div>
-                         <div>
-                            <label className="text-xs sm:text-sm text-slate-300 mb-2 block font-bold">Sour Apples</label>
-                            <select value={numBadApples} onChange={e => setNumBadApples(Number(e.target.value))} disabled={!user} className="w-full bg-slate-800 p-2.5 sm:p-3 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl font-black text-base sm:text-lg md:text-2xl border-2 border-green-500/40 focus:border-green-400 focus:outline-none transition-all">
-                                {[1, 3, 5, 10, 15, 20, 24].map(n => <option key={n} value={n}>{n} Sour</option>)}
-                            </select>
-                         </div>
+                 <div className="w-full space-y-2 sm:space-y-3">
+                     <div className="flex justify-between items-center mb-2">
+                        <label className="text-xs sm:text-sm text-slate-300 font-semibold">Bet Amount</label>
+                        <div className="text-xs text-slate-400">Balance: ${balance.toFixed(2)}</div>
+                     </div>
+                     <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-2">
+                         <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={!user} className="w-full bg-slate-800/50 p-3 sm:p-4 rounded-lg sm:rounded-xl border border-slate-700/50 text-base sm:text-xl font-bold shadow-inner focus:border-green-500/50 focus:outline-none transition-all text-white" />
+                         <select value={numBadApples} onChange={e => setNumBadApples(Number(e.target.value))} disabled={!user} className="w-full bg-slate-800/50 p-3 sm:p-4 rounded-lg sm:rounded-xl border border-slate-700/50 text-base sm:text-xl font-bold focus:border-green-500/50 focus:outline-none transition-all text-white">
+                            {[1, 3, 5, 10, 15, 20, 24].map(n => <option key={n} value={n}>{n} Sour</option>)}
+                         </select>
                      </div>
                      <QuickBetButtons wager={wager} setWager={setWager} balance={balance} disabled={!user} />
                      {user ? (
-                        <motion.button 
-                            onClick={startGame} 
+                        <motion.button
+                            onClick={startGame}
                             disabled={wager <= 0 || wager > balance}
                             whileTap={{ scale: wager <= 0 || wager > balance ? 1 : 0.95 }}
-                            className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-green-500 via-emerald-500 to-green-500 text-white p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl text-lg sm:text-2xl md:text-3xl font-black shadow-2xl disabled:opacity-50 disabled:hover:scale-100 transition-all touch-manipulation active:scale-95"
+                            className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white p-4 sm:p-5 rounded-lg sm:rounded-xl text-base sm:text-xl font-bold shadow-lg disabled:opacity-40 transition-all touch-manipulation"
                         >
-                            START PICKING 🍎
+                            BET
                         </motion.button>
                      ) : (
-                         <button onClick={promptLogin} className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-xl sm:text-3xl font-black shadow-2xl hover:scale-105 hover:shadow-amber-500/50 transition-all touch-manipulation">
-                            Sign In to Pick
+                         <button onClick={promptLogin} className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white p-4 sm:p-5 rounded-lg sm:rounded-xl text-base sm:text-xl font-bold shadow-lg hover:scale-[1.01] transition-all touch-manipulation">
+                            Sign In to Play
                         </button>
                      )}
                 </div>
             ) : (
                 <div className="w-full">
-                    <div className="text-center mb-3 sm:mb-4 p-3 sm:p-4 md:p-6 glass-effect rounded-xl sm:rounded-2xl border-2 border-green-400/30">
-                        <div className="text-xs sm:text-sm text-green-300 mb-1 font-bold">Current Multiplier</div>
-                        <div className="text-3xl sm:text-5xl md:text-6xl font-black text-green-400 mb-2 tabular-nums">{currentMultiplier}x</div>
-                        <div className="text-sm sm:text-base md:text-lg text-amber-300 font-bold">Next: {calculateMultiplier(goodApplesFound + 1)}x</div>
+                    <div className="text-center mb-3 sm:mb-4 p-3 sm:p-4 glass-effect rounded-lg sm:rounded-xl border border-green-400/20">
+                        <div className="text-xs sm:text-sm text-green-300 mb-1 font-semibold">Current Multiplier</div>
+                        <div className="text-3xl sm:text-5xl font-black text-green-400 mb-1 tabular-nums">{currentMultiplier}x</div>
+                        <div className="text-sm sm:text-base text-amber-300 font-semibold">Next: {calculateMultiplier(goodApplesFound + 1)}x</div>
                         <div className="text-xs sm:text-sm text-slate-400 mt-2">Good Apples: {goodApplesFound}</div>
                     </div>
-                    <motion.button 
-                        onClick={cashOut} 
+                    <motion.button
+                        onClick={cashOut}
                         disabled={goodApplesFound === 0}
                         whileTap={{ scale: goodApplesFound === 0 ? 1 : 0.95 }}
-                        className="w-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-900 p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl text-lg sm:text-2xl md:text-3xl font-black shadow-2xl disabled:opacity-50 disabled:hover:scale-100 transition-all animate-glow touch-manipulation active:scale-95"
+                        className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white p-4 sm:p-5 rounded-lg sm:rounded-xl text-base sm:text-xl font-bold shadow-lg disabled:opacity-40 transition-all touch-manipulation"
                     >
-                        CASH OUT +${(wager * currentMultiplier).toFixed(2)}
+                        CASH OUT ${(wager * currentMultiplier).toFixed(2)}
                     </motion.button>
                 </div>
             )}
@@ -1665,13 +1866,20 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
 
         playerHands.forEach(hand => {
             const playerValue = getHandValue(hand);
+
+            // CRITICAL: Player bust always loses, regardless of dealer hand
             if (playerValue > 21) {
                 losses++;
-            } else if (dealerValue > 21) {
+                // No winnings for busted hands
+            }
+            // If player didn't bust but dealer did, player wins
+            else if (dealerValue > 21) {
                 // Win payout: 2x * 0.9 (10% house commission) = 1.8x net
                 totalWinnings += wager * 1.8;
                 wins++;
-            } else if (playerValue > dealerValue) {
+            }
+            // Both standing: compare values
+            else if (playerValue > dealerValue) {
                 // Win payout: 2x * 0.9 (10% house commission) = 1.8x net
                 totalWinnings += wager * 1.8;
                 wins++;
@@ -1679,23 +1887,28 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
                 totalWinnings += wager;
                 pushes++;
             } else {
+                // Dealer has higher value
                 losses++;
             }
         });
 
         setBalance(prev => prev + totalWinnings);
 
-        if (wins > losses) {
-            setResult({ type: 'win', amount: totalWinnings - (wager * playerHands.length) });
+        // Determine overall result based on net outcome
+        const netProfit = totalWinnings - (wager * playerHands.length);
+
+        if (netProfit > 0) {
+            setResult({ type: 'win', amount: netProfit });
             playSound('playWin', totalWinnings);
             if (totalWinnings >= wager * 5) {
                 setShowConfetti(true);
                 playSound('playBigWin');
             }
-        } else if (losses > wins) {
+        } else if (netProfit < 0) {
             setResult({ type: 'loss' });
             playSound('playCrash');
         } else {
+            // Break even (all pushes)
             setResult({ type: 'push' });
             playSound('playButtonClick');
         }
@@ -1771,29 +1984,28 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
     }, []);
 
     return (
-        <div className="flex flex-col items-center p-3 sm:p-8 bg-gradient-to-br from-gray-900 via-slate-950 to-black rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-3xl mx-auto border-2 border-red-500/30 premium-shadow animate-scale-in relative">
+        <div className="flex flex-col items-center p-3 sm:p-6 bg-gradient-to-br from-slate-950 via-gray-950 to-slate-950 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-3xl mx-auto border border-red-500/20 animate-scale-in relative">
             <InfoIcon onClick={() => setIsInfoOpen(true)} />
-            <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Blackjack Info">
-                <h3 className="font-bold text-lg sm:text-xl text-white">How to Play</h3>
-                <p className="text-sm sm:text-base">Get as close to 21 as possible without going over. Face cards are worth 10, Aces are worth 1 or 11. Beat the dealer to win!</p>
-                <h3 className="font-bold text-lg sm:text-xl text-white mt-4">Actions</h3>
-                <ul className="list-disc list-inside space-y-1 text-sm sm:text-base">
-                    <li><span className="font-bold text-amber-300">HIT:</span> Draw another card</li>
-                    <li><span className="font-bold text-amber-300">STAND:</span> Keep your current hand</li>
-                    <li><span className="font-bold text-amber-300">DOUBLE:</span> Double your bet and draw one card</li>
-                    <li><span className="font-bold text-amber-300">SPLIT:</span> Split matching cards into two hands</li>
+            <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Blackjack">
+                <h3 className="font-bold text-base sm:text-lg text-white mb-2">How to Play</h3>
+                <p className="text-xs sm:text-sm mb-3">Get to 21 without going over. Beat the dealer!</p>
+                <h3 className="font-bold text-base sm:text-lg text-white mb-2">Payouts</h3>
+                <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm">
+                    <li>Blackjack: <span className="font-bold text-green-400">2.25×</span></li>
+                    <li>Win: <span className="font-bold text-green-400">1.8×</span></li>
+                    <li>Push: <span className="font-bold text-yellow-400">1×</span></li>
                 </ul>
-                <h3 className="font-bold text-lg sm:text-xl text-white mt-4">Payouts (10% house commission)</h3>
-                <ul className="list-disc list-inside space-y-1 text-sm sm:text-base">
-                    <li>Blackjack: <span className="font-bold text-amber-300">2.25x</span> (3:2 minus 10% commission)</li>
-                    <li>Win: <span className="font-bold text-amber-300">1.8x</span> (1:1 minus 10% commission)</li>
-                    <li>Push: <span className="font-bold text-amber-300">1x</span> (tie, no commission)</li>
-                </ul>
-                <div className="mt-3 p-2 bg-red-500/20 rounded-lg border border-red-500/30">
-                    <p className="text-xs sm:text-sm text-center text-red-200">💡 All wins subject to 10% house commission</p>
+                <div className="mt-3 p-2 bg-slate-800/50 rounded-lg">
+                    <p className="text-xs text-slate-400 text-center">10% house commission on wins</p>
                 </div>
             </InfoModal>
             <Confetti show={showConfetti} />
+
+            {/* Stake-style header */}
+            <div className="w-full flex justify-between items-center mb-3 sm:mb-4">
+                <div className="text-base sm:text-xl font-bold text-white">Blackjack</div>
+                <div className="text-xs sm:text-sm text-slate-400 bg-slate-800/50 px-3 py-1 rounded-full">RTP 90%</div>
+            </div>
 
             {/* Dealer Hand */}
             {dealerHand.length > 0 && (
@@ -2170,7 +2382,7 @@ export default function App() {
         { id: 'slots', label: 'Fruit Frenzy', icon: '/slots.png', color: 'from-violet-500 to-purple-600', desc: 'Classic slots with massive jackpots' },
         { id: 'scratch', label: 'Sugar Scratch', icon: '/scratch.png', color: 'from-pink-500 to-rose-600', desc: 'Instant wins with custom bets' },
         { id: 'rocket', label: 'Icicle Pop', icon: '/rocket2.png', color: 'from-orange-500 to-amber-600', desc: 'Cash out before the crash' },
-        { id: 'candy', label: 'Candy Drop', icon: '/candy.png', color: 'from-blue-500 to-cyan-600', desc: 'Watch candy bounce to riches' },
+        { id: 'candy', label: 'Candy Drop', icon: '/candy.png', color: 'from-blue-500 to-cyan-600', desc: 'Plinko-style instant drops' },
         { id: 'apple', label: 'Sour Apple', icon: '/apple.png', color: 'from-green-500 to-emerald-600', desc: 'Avoid the sour, find the sweet' },
         { id: 'blackjack', label: 'Blackjack', icon: '/blackjack.jpg', color: 'from-red-500 to-rose-600', desc: 'Beat the dealer to 21' },
     ];
@@ -2195,7 +2407,7 @@ export default function App() {
             <header className="w-full max-w-6xl mb-4 sm:mb-6 glass-effect p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-2xl z-20 animate-slide-up">
                 <div className="flex justify-between items-center flex-wrap gap-2 sm:gap-4">
                     <div className="flex items-center gap-2 sm:gap-4">
-                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-400 to-violet-400">Gourmet Fun</h1>
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-400 to-violet-400">Gourmet</h1>
                         {!showSelection && (
                             <motion.button 
                                 onClick={backToSelection}
