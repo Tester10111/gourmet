@@ -1,3 +1,93 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  /* Premium Gold & Black Theme */
+  .bg-premium-black {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  }
+  
+  .bg-premium-gold {
+    background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+  }
+  
+  .text-premium-gold {
+    color: #d4af37;
+  }
+  
+  .border-premium-gold {
+    border-color: #d4af37;
+  }
+  
+  /* Enhanced Animations */
+  @keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+  }
+  
+  @keyframes pulse-gold {
+    0%, 100% { opacity: 1; box-shadow: 0 0 20px rgba(212, 175, 55, 0.5); }
+    50% { opacity: 0.8; box-shadow: 0 0 40px rgba(212, 175, 55, 0.8); }
+  }
+  
+  @keyframes coin-flip {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
+  }
+  
+  @keyframes near-miss-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px) scale(1.05); }
+    75% { transform: translateX(10px) scale(1.05); }
+  }
+  
+  @keyframes win-burst {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+  }
+  
+  .animate-pulse-gold {
+    animation: pulse-gold 2s ease-in-out infinite;
+  }
+  
+  .animate-coin-flip {
+    animation: coin-flip 2s ease-in-out infinite;
+  }
+  
+  .animate-near-miss {
+    animation: near-miss-shake 0.5s ease-in-out;
+  }
+  
+  .animate-win-burst {
+    animation: win-burst 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  /* Mobile Touch Feedback */
+  .touch-active:active {
+    transform: scale(0.95);
+    transition: transform 0.1s;
+  }
+  
+  /* Premium Glass Effect */
+  .glass-premium {
+    background: rgba(10, 10, 10, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+  }
+  
+  /* Gold Gradient Text */
+  .text-gold-gradient {
+    background: linear-gradient(135deg, #d4af37, #f4d03f, #d4af37);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}

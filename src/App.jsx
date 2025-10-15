@@ -20,7 +20,7 @@ const AnimatedBalance = ({ value }) => {
 
 
 // --- Helper Icons ---
-const LoyaltyPointsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-300"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>;
+const LoyaltyPointsIcon = () => <img src="/coin.png" alt="coin" className="w-6 h-6 sm:w-7 sm:h-7 animate-spin-slow" style={{ animation: 'spin 3s linear infinite' }} />;
 const BackIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>;
 const LogoutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>;
 const InfoIcon = ({ onClick }) => (
@@ -94,11 +94,11 @@ const PlayerRank = ({ totalWagered }) => {
             />
             <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-64 bg-slate-900/80 backdrop-blur-md border border-amber-300/30 rounded-lg p-4 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-[100]">
                 <h4 className="font-bold text-amber-300 text-lg">{currentRank.name}</h4>
-                <p className="text-xs text-slate-400">Unlocked at ${currentRank.threshold} wagered</p>
-                <p className="text-sm text-slate-300 mt-2">Total Wagered: ${totalWagered.toFixed(2)}</p>
+                <p className="text-xs text-slate-400 flex items-center gap-1">Unlocked at <img src="/coin.png" alt="coin" className="w-3 h-3 inline" />{currentRank.threshold} wagered</p>
+                <p className="text-sm text-slate-300 mt-2 flex items-center gap-1">Total Wagered: <img src="/coin.png" alt="coin" className="w-3 h-3 inline" />{totalWagered.toFixed(2)}</p>
                 {nextRank ? (
                     <>
-                        <p className="text-xs text-slate-400 mt-2">Next: {nextRank.name} at ${nextRank.threshold} wagered</p>
+                        <p className="text-xs text-slate-400 mt-2 flex items-center gap-1">Next: {nextRank.name} at <img src="/coin.png" alt="coin" className="w-3 h-3 inline" />{nextRank.threshold} wagered</p>
                         <div className="w-full bg-slate-700 rounded-full h-2 mt-2">
                             <div className="bg-amber-400 h-2 rounded-full" style={{ width: `${progress}%` }}></div>
                         </div>
@@ -325,6 +325,7 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
     const [winningLines, setWinningLines] = useState([]);
     const [isInfoOpen, setIsInfoOpen] = useState(false);
     const [recentSpins, setRecentSpins] = useState([]);
+    const [nearMissLine, setNearMissLine] = useState(null);
     const reelRefs = useRef([]);
     const [visualReelStrips, setVisualReelStrips] = useState(Array(REELS_COUNT).fill([]));
 
@@ -378,6 +379,7 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
         setShowResult(false);
         setLastWin(0);
         setWinningLines([]);
+        setNearMissLine(null);
         playSound('playReelSpin');
 
         let finalReels = [];
@@ -453,9 +455,12 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
                         if (winAmount > bestWin) {
                             bestWin = winAmount;
                         }
-                    } else if (matchCount === 2 && !nearMissDetected) {
+                    } else if (matchCount === 2 && !nearMissDetected && startPos === 0) {
+                        // Near miss: 2 matching symbols from the left
                         nearMissDetected = true;
+                        setNearMissLine(lineIndex);
                         playSound('playNearMiss');
+                        setTimeout(() => setNearMissLine(null), 1000);
                     }
                 }
 
@@ -493,7 +498,7 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
     };
 
     return (
-        <div className="flex flex-col items-center p-3 sm:p-6 bg-gradient-to-br from-slate-950 via-gray-950 to-slate-950 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border border-violet-500/20 animate-scale-in relative">
+        <div className="flex flex-col items-center p-3 sm:p-6 bg-premium-black rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border-2 border-premium-gold/30 animate-scale-in relative">
             <InfoIcon onClick={() => setIsInfoOpen(true)} />
             <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} title="Fruit Frenzy">
                 <h3 className="font-bold text-base sm:text-lg text-white mb-2">How to Play</h3>
@@ -522,9 +527,12 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
             {/* Reels Section */}
             <div className="w-full bg-slate-900/40 rounded-xl sm:rounded-2xl p-2 sm:p-4 mb-3 sm:mb-4 border border-slate-700/30 relative overflow-hidden">
                 <div className="bg-black/40 rounded-lg sm:rounded-xl p-2 sm:p-4 flex justify-center gap-1 sm:gap-2 overflow-hidden h-[240px] sm:h-[260px] relative">
-                     {winningLines.includes(0) && <div className="absolute top-[40px] left-0 w-full h-1 bg-green-400 z-20 animate-pulse-glow shadow-lg shadow-green-400/50"></div>}
-                     {winningLines.includes(1) && <div className="absolute top-1/2 left-0 w-full h-1 bg-green-400 -translate-y-1/2 z-20 animate-pulse-glow shadow-lg shadow-green-400/50"></div>}
-                     {winningLines.includes(2) && <div className="absolute bottom-[40px] left-0 w-full h-1 bg-green-400 z-20 animate-pulse-glow shadow-lg shadow-green-400/50"></div>}
+                     {winningLines.includes(0) && <div className="absolute top-[40px] left-0 w-full h-2 bg-premium-gold z-20 animate-pulse-gold shadow-lg shadow-yellow-400/50"></div>}
+                     {winningLines.includes(1) && <div className="absolute top-1/2 left-0 w-full h-2 bg-premium-gold -translate-y-1/2 z-20 animate-pulse-gold shadow-lg shadow-yellow-400/50"></div>}
+                     {winningLines.includes(2) && <div className="absolute bottom-[40px] left-0 w-full h-2 bg-premium-gold z-20 animate-pulse-gold shadow-lg shadow-yellow-400/50"></div>}
+                     {nearMissLine === 0 && <div className="absolute top-[40px] left-0 w-full h-2 bg-orange-500 z-20 animate-near-miss shadow-lg shadow-orange-500/50"></div>}
+                     {nearMissLine === 1 && <div className="absolute top-1/2 left-0 w-full h-2 bg-orange-500 -translate-y-1/2 z-20 animate-near-miss shadow-lg shadow-orange-500/50"></div>}
+                     {nearMissLine === 2 && <div className="absolute bottom-[40px] left-0 w-full h-2 bg-orange-500 z-20 animate-near-miss shadow-lg shadow-orange-500/50"></div>}
                     {visualReelStrips.map((strip, i) => (
                         <div key={i} className="w-1/5 h-full overflow-hidden">
                             <div ref={el => reelRefs.current[i] = el} style={{ transform: 'translateY(0px)' }} className="relative">
@@ -550,9 +558,9 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
                                 <motion.div
                                     initial={{ y: 20 }}
                                     animate={{ y: 0 }}
-                                    className="text-3xl sm:text-6xl font-black text-green-400 mb-2"
+                                    className="text-3xl sm:text-6xl font-black text-green-400 mb-2 flex items-center justify-center gap-2"
                                 >
-                                    +${lastWin.toFixed(2)}
+                                    +<img src="/coin.png" alt="coin" className="w-8 h-8 sm:w-12 sm:h-12 inline" />{lastWin.toFixed(2)}
                                 </motion.div>
                                 <div className="text-base sm:text-2xl text-slate-300">{(lastWin/wager).toFixed(2)}× Win</div>
                             </div>
@@ -586,7 +594,7 @@ const FruitFrenzy = ({ balance, setBalance, playSound, logGameResult, user, prom
              <div className="w-full space-y-2 sm:space-y-3">
                 <div className="flex justify-between items-center">
                     <label className="text-xs sm:text-sm text-slate-300 font-semibold">Bet Amount</label>
-                    <div className="text-xs text-slate-400">Balance: ${balance.toFixed(2)}</div>
+                    <div className="text-xs text-slate-400 flex items-center gap-1">Balance: <img src="/coin.png" alt="coin" className="w-3 h-3 inline" />{balance.toFixed(2)}</div>
                 </div>
                 <input
                     type="number"
@@ -793,7 +801,11 @@ const SugarScratch = ({ balance, setBalance, playSound, logGameResult, user, pro
             <div className="w-full">
                 {revealed && (
                     <div className={`text-center text-xl sm:text-3xl font-black mb-4 sm:mb-5 p-4 sm:p-6 rounded-xl sm:rounded-2xl animate-bounce-in ${totalWin > 0 ? 'bg-green-500/20 text-green-300 border-2 border-green-500' : 'bg-slate-800/50 text-slate-400'}`}>
-                        {totalWin > 0 ? `You Won $${totalWin.toFixed(2)}!` : 'No Matches This Time!'}
+                        {totalWin > 0 ? (
+                            <div className="flex items-center justify-center gap-2">
+                                You Won <img src="/coin.png" alt="coin" className="w-6 h-6 sm:w-8 sm:h-8 inline" />{totalWin.toFixed(2)}!
+                            </div>
+                        ) : 'No Matches This Time!'}
                     </div>
                 )}
                 
@@ -832,7 +844,7 @@ const SugarScratch = ({ balance, setBalance, playSound, logGameResult, user, pro
                     <>
                         <div className="flex justify-between items-center mb-2">
                             <label className="text-xs sm:text-sm text-slate-300 font-semibold">Bet Amount</label>
-                            <div className="text-xs text-slate-400">Balance: ${balance.toFixed(2)}</div>
+                            <div className="text-xs text-slate-400 flex items-center gap-1">Balance: <img src="/coin.png" alt="coin" className="w-3 h-3 inline" />{balance.toFixed(2)}</div>
                         </div>
                         <input
                             type="number"
@@ -944,7 +956,7 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
         if (gameState === 'running') {
             const startTime = Date.now();
             
-            const houseEdge = 10;
+            const houseEdge = 5;
             const r = Math.random();
             let crashPointValue = (100 - houseEdge) / (100 - r * (100-houseEdge));
 
@@ -963,20 +975,25 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
                     multiplierRef.current = finalCrashPoint;
                     setGameState('crashed');
                     setHistory(prev => [finalCrashPoint, ...prev.slice(0, 4)]);
-                    setLastGameResult({ type: 'crash', multiplier: finalCrashPoint });
+                    
+                    // Only show crash result if player hasn't cashed out
+                    const hadActiveBet = !!placedBet;
+                    if (hadActiveBet) {
+                        setLastGameResult({ type: 'crash', multiplier: finalCrashPoint });
+                    }
 
-                    // Stake-style: Track recent rounds
-                    setRecentRounds(prev => [{
-                        id: Date.now(),
-                        crashPoint: finalCrashPoint,
-                        didBet: !!placedBet,
-                        won: false
-                    }, ...prev].slice(0, 10));
+                    // Stake-style: Track recent rounds (only if player didn't already cash out)
+                    if (hadActiveBet) {
+                        setRecentRounds(prev => [{
+                            id: Date.now(),
+                            crashPoint: finalCrashPoint,
+                            didBet: true,
+                            won: false
+                        }, ...prev].slice(0, 10));
+                        logGameResult('Icicle Pop', placedBet, 0);
+                    }
 
                     playSound('playRocketExplode');
-                    if(placedBet) {
-                       logGameResult('Icicle Pop', placedBet, 0);
-                    }
                     setPlacedBet(null);
                     setTimeout(() => setGameState('waiting'), 3000);
                 } else {
@@ -1007,7 +1024,7 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
             {/* Stake-style header */}
             <div className="w-full flex justify-between items-center mb-3 sm:mb-4">
                 <div className="text-base sm:text-xl font-bold text-white">Icicle Pop</div>
-                <div className="text-xs sm:text-sm text-slate-400 bg-slate-800/50 px-3 py-1 rounded-full">RTP 99%</div>
+                <div className="text-xs sm:text-sm text-slate-400 bg-slate-800/50 px-3 py-1 rounded-full">RTP 95%</div>
             </div>
 
             {/* Recent Rounds - Stake Style */}
@@ -1064,7 +1081,7 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
                             <div className="animate-bounce-in">
                                 <div className="text-4xl sm:text-7xl font-black text-green-400 mb-2 sm:mb-3 animate-neon">SUCCESS!</div>
                                 <div className="text-xl sm:text-4xl font-bold text-green-300">@{lastGameResult.multiplier.toFixed(2)}x</div>
-                                <div className="text-lg sm:text-3xl font-black text-amber-300 mt-2">+${lastGameResult.winnings.toFixed(2)}</div>
+                                <div className="text-lg sm:text-3xl font-black text-amber-300 mt-2 flex items-center justify-center gap-2">+<img src="/coin.png" alt="coin" className="w-6 h-6 sm:w-8 sm:h-8 inline" />{lastGameResult.winnings.toFixed(2)}</div>
                             </div>
                         )
                     ) : (
@@ -1080,15 +1097,15 @@ const IciclePop = ({ balance, setBalance, playSound, logGameResult, user, prompt
                     <motion.button
                         onClick={cashOut}
                         whileTap={{ scale: 0.95 }}
-                        className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white p-4 sm:p-5 rounded-lg sm:rounded-xl text-base sm:text-xl font-bold shadow-lg transition-all animate-pulse-glow touch-manipulation"
+                        className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white p-4 sm:p-5 rounded-lg sm:rounded-xl text-base sm:text-xl font-bold shadow-lg transition-all animate-pulse-glow touch-manipulation flex items-center justify-center gap-2"
                     >
-                        CASH OUT ${(placedBet * multiplier).toFixed(2)}
+                        CASH OUT <img src="/coin.png" alt="coin" className="w-5 h-5 inline" />{(placedBet * multiplier).toFixed(2)}
                     </motion.button>
                 ) : (
                     <>
                         <div className="flex justify-between items-center mb-2">
                             <label className="text-xs sm:text-sm text-slate-300 font-semibold">Bet Amount</label>
-                            <div className="text-xs text-slate-400">Balance: ${balance.toFixed(2)}</div>
+                            <div className="text-xs text-slate-400 flex items-center gap-1">Balance: <img src="/coin.png" alt="coin" className="w-3 h-3 inline" />{balance.toFixed(2)}</div>
                         </div>
                         <input
                             type="number"
@@ -1328,11 +1345,11 @@ const CandyDrop = ({ balance, setBalance, playSound, logGameResult, user, prompt
                             exit={{ opacity: 0, scale: 0.5 }}
                             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 bg-black/90 backdrop-blur-sm rounded-2xl p-6 border-2 border-amber-400/50"
                         >
-                            <div className={`text-4xl sm:text-6xl font-black mb-2 ${
+                            <div className={`text-4xl sm:text-6xl font-black mb-2 flex items-center justify-center gap-2 ${
                                 lastResult.winnings > wager ? 'text-green-400' :
                                 lastResult.winnings === wager ? 'text-yellow-400' : 'text-red-400'
                             }`}>
-                                {lastResult.winnings > wager ? '+' : ''}${lastResult.winnings.toFixed(2)}
+                                {lastResult.winnings > wager ? '+' : ''}<img src="/coin.png" alt="coin" className="w-10 h-10 sm:w-14 sm:h-14 inline" />{lastResult.winnings.toFixed(2)}
                             </div>
                             <div className="text-xl sm:text-2xl text-amber-300 font-bold">
                                 {lastResult.multiplier}× multiplier
@@ -1367,7 +1384,7 @@ const CandyDrop = ({ balance, setBalance, playSound, logGameResult, user, prompt
             <div className="w-full space-y-2 sm:space-y-3">
                 <div className="flex justify-between items-center mb-2">
                     <label className="text-xs sm:text-sm text-slate-300 font-semibold">Bet Amount</label>
-                    <div className="text-xs text-slate-400">Balance: ${balance.toFixed(2)}</div>
+                    <div className="text-xs text-slate-400 flex items-center gap-1">Balance: <img src="/coin.png" alt="coin" className="w-3 h-3 inline" />{balance.toFixed(2)}</div>
                 </div>
                 <input
                     type="number"
@@ -1574,7 +1591,7 @@ const SourApple = ({ balance, setBalance, playSound, logGameResult, user, prompt
                  <div className="w-full space-y-2 sm:space-y-3">
                      <div className="flex justify-between items-center mb-2">
                         <label className="text-xs sm:text-sm text-slate-300 font-semibold">Bet Amount</label>
-                        <div className="text-xs text-slate-400">Balance: ${balance.toFixed(2)}</div>
+                        <div className="text-xs text-slate-400 flex items-center gap-1">Balance: <img src="/coin.png" alt="coin" className="w-3 h-3 inline" />{balance.toFixed(2)}</div>
                      </div>
                      <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-2">
                          <input type="number" value={wager} onChange={e => setWager(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))} disabled={!user} className="w-full bg-slate-800/50 p-3 sm:p-4 rounded-lg sm:rounded-xl border border-slate-700/50 text-base sm:text-xl font-bold shadow-inner focus:border-green-500/50 focus:outline-none transition-all text-white" />
@@ -1612,7 +1629,7 @@ const SourApple = ({ balance, setBalance, playSound, logGameResult, user, prompt
                         whileTap={{ scale: goodApplesFound === 0 ? 1 : 0.95 }}
                         className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white p-4 sm:p-5 rounded-lg sm:rounded-xl text-base sm:text-xl font-bold shadow-lg disabled:opacity-40 transition-all touch-manipulation"
                     >
-                        CASH OUT ${(wager * currentMultiplier).toFixed(2)}
+                        CASH OUT <img src="/coin.png" alt="coin" className="w-5 h-5 inline" />{(wager * currentMultiplier).toFixed(2)}
                     </motion.button>
                 </div>
             )}
@@ -1634,6 +1651,7 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
     const [isInfoOpen, setIsInfoOpen] = useState(false);
     const [canDouble, setCanDouble] = useState(false);
     const [canSplit, setCanSplit] = useState(false);
+    const [handWagers, setHandWagers] = useState([]); // Track wager for each hand (accounts for doubles)
 
     // Card suits and values
     const suits = ['♠', '♥', '♦', '♣'];
@@ -1694,6 +1712,7 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
         setDealingAnimation(true);
         setResult(null);
         setShowConfetti(false);
+        setHandWagers([wager]); // Initialize with base wager
 
         const newDeck = createDeck();
         const playerCard1 = newDeck.pop();
@@ -1749,13 +1768,14 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
 
         const handValue = getHandValue(newHands[activeHandIndex]);
         if (handValue > 21) {
-            // Bust
-            if (activeHandIndex < playerHands.length - 1) {
+            // Bust - check using newHands, not old playerHands state
+            if (activeHandIndex < newHands.length - 1) {
                 // Move to next hand
                 setActiveHandIndex(activeHandIndex + 1);
                 setCanDouble(newHands[activeHandIndex + 1].length === 2);
             } else {
-                handlePlayerBust();
+                // Check if all hands are busted using newHands
+                handlePlayerBust(newHands);
             }
         }
     };
@@ -1788,6 +1808,11 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
         const newHands = [...playerHands];
         newHands[activeHandIndex] = [...newHands[activeHandIndex], newCard];
 
+        // Update wager for this hand (doubled)
+        const newHandWagers = [...handWagers];
+        newHandWagers[activeHandIndex] = wager * 2;
+        setHandWagers(newHandWagers);
+
         setPlayerHands(newHands);
         setDeck(newDeck);
         setCanDouble(false);
@@ -1795,13 +1820,14 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
 
         const handValue = getHandValue(newHands[activeHandIndex]);
         if (handValue > 21) {
-            if (activeHandIndex < playerHands.length - 1) {
+            if (activeHandIndex < newHands.length - 1) {
                 setActiveHandIndex(activeHandIndex + 1);
             } else {
-                handlePlayerBust();
+                // Check if all hands are busted using newHands
+                handlePlayerBust(newHands);
             }
         } else {
-            if (activeHandIndex < playerHands.length - 1) {
+            if (activeHandIndex < newHands.length - 1) {
                 setActiveHandIndex(activeHandIndex + 1);
                 setCanDouble(newHands[activeHandIndex + 1].length === 2);
             } else {
@@ -1825,7 +1851,12 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
         newHands[activeHandIndex] = [hand[0], card1];
         newHands.splice(activeHandIndex + 1, 0, [hand[1], card2]);
 
+        // Add wager for the new split hand
+        const newHandWagers = [...handWagers];
+        newHandWagers.splice(activeHandIndex + 1, 0, wager);
+
         setPlayerHands(newHands);
+        setHandWagers(newHandWagers);
         setDeck(newDeck);
         setCanSplit(false);
         setCanDouble(true);
@@ -1856,16 +1887,19 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
         dealerDrawCard();
     };
 
-    // Determine winner (with 10% house commission on wins for 90% RTP)
+    // Determine winner (with 90% RTP payouts)
     const determineWinner = (finalDealerHand) => {
         const dealerValue = getHandValue(finalDealerHand || dealerHand);
         let totalWinnings = 0;
+        let totalWagered = 0;
         let wins = 0;
         let losses = 0;
         let pushes = 0;
 
-        playerHands.forEach(hand => {
+        playerHands.forEach((hand, index) => {
             const playerValue = getHandValue(hand);
+            const handWager = handWagers[index] || wager;
+            totalWagered += handWager;
 
             // CRITICAL: Player bust always loses, regardless of dealer hand
             if (playerValue > 21) {
@@ -1874,17 +1908,18 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
             }
             // If player didn't bust but dealer did, player wins
             else if (dealerValue > 21) {
-                // Win payout: 2x * 0.9 (10% house commission) = 1.8x net
-                totalWinnings += wager * 1.8;
+                // Win payout: 1.6x for 90% RTP
+                totalWinnings += handWager * 1.6;
                 wins++;
             }
             // Both standing: compare values
             else if (playerValue > dealerValue) {
-                // Win payout: 2x * 0.9 (10% house commission) = 1.8x net
-                totalWinnings += wager * 1.8;
+                // Win payout: 1.6x for 90% RTP
+                totalWinnings += handWager * 1.6;
                 wins++;
             } else if (playerValue === dealerValue) {
-                totalWinnings += wager;
+                // Push returns original wager
+                totalWinnings += handWager;
                 pushes++;
             } else {
                 // Dealer has higher value
@@ -1895,7 +1930,7 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
         setBalance(prev => prev + totalWinnings);
 
         // Determine overall result based on net outcome
-        const netProfit = totalWinnings - (wager * playerHands.length);
+        const netProfit = totalWinnings - totalWagered;
 
         if (netProfit > 0) {
             setResult({ type: 'win', amount: netProfit });
@@ -1913,15 +1948,15 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
             playSound('playButtonClick');
         }
 
-        logGameResult('Blackjack', wager * playerHands.length, totalWinnings);
+        logGameResult('Blackjack', totalWagered, totalWinnings);
         setGameState('finished');
         setTimeout(() => setShowConfetti(false), 3000);
     };
 
     // Special outcomes
     const handleBlackjack = () => {
-        // Blackjack: 2.5x * 0.9 (10% commission) = 2.25x net
-        const winnings = wager * 2.25;
+        // Blackjack: 2.0x for 90% RTP
+        const winnings = wager * 2.0;
         setBalance(prev => prev + winnings);
         setResult({ type: 'blackjack', amount: winnings - wager });
         playSound('playBigWin');
@@ -1946,12 +1981,13 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
         setGameState('finished');
     };
 
-    const handlePlayerBust = () => {
-        const allBust = playerHands.every(hand => getHandValue(hand) > 21);
+    const handlePlayerBust = (hands = playerHands) => {
+        const allBust = hands.every(hand => getHandValue(hand) > 21);
         if (allBust) {
             setResult({ type: 'bust' });
             playSound('playCrash');
-            logGameResult('Blackjack', wager * playerHands.length, 0);
+            const totalWagered = handWagers.reduce((sum, hw) => sum + hw, 0);
+            logGameResult('Blackjack', totalWagered, 0);
             setGameState('finished');
         } else {
             dealerPlay();
@@ -1991,12 +2027,12 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
                 <p className="text-xs sm:text-sm mb-3">Get to 21 without going over. Beat the dealer!</p>
                 <h3 className="font-bold text-base sm:text-lg text-white mb-2">Payouts</h3>
                 <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm">
-                    <li>Blackjack: <span className="font-bold text-green-400">2.25×</span></li>
-                    <li>Win: <span className="font-bold text-green-400">1.8×</span></li>
+                    <li>Blackjack: <span className="font-bold text-green-400">2.0×</span></li>
+                    <li>Win: <span className="font-bold text-green-400">1.6×</span></li>
                     <li>Push: <span className="font-bold text-yellow-400">1×</span></li>
                 </ul>
                 <div className="mt-3 p-2 bg-slate-800/50 rounded-lg">
-                    <p className="text-xs text-slate-400 text-center">10% house commission on wins</p>
+                    <p className="text-xs text-slate-400 text-center">90% RTP</p>
                 </div>
             </InfoModal>
             <Confetti show={showConfetti} />
@@ -2078,8 +2114,16 @@ const Blackjack = ({ balance, setBalance, playSound, logGameResult, user, prompt
                             : 'bg-red-500/20 text-red-300 border-2 border-red-500'
                     }`}
                 >
-                    {result.type === 'blackjack' && `BLACKJACK! +$${result.amount.toFixed(2)} 🎉`}
-                    {result.type === 'win' && `YOU WIN! +$${result.amount.toFixed(2)} 🎊`}
+                    {result.type === 'blackjack' && (
+                        <div className="flex items-center justify-center gap-2">
+                            BLACKJACK! +<img src="/coin.png" alt="coin" className="w-6 h-6 sm:w-8 sm:h-8 inline" />{result.amount.toFixed(2)} 🎉
+                        </div>
+                    )}
+                    {result.type === 'win' && (
+                        <div className="flex items-center justify-center gap-2">
+                            YOU WIN! +<img src="/coin.png" alt="coin" className="w-6 h-6 sm:w-8 sm:h-8 inline" />{result.amount.toFixed(2)} 🎊
+                        </div>
+                    )}
                     {result.type === 'loss' && 'DEALER WINS 😔'}
                     {result.type === 'push' && 'PUSH - TIE! 🤝'}
                     {result.type === 'bust' && 'BUST! 💥'}
@@ -2277,6 +2321,97 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
 };
 
 
+// --- Streak Counter Component ---
+const StreakCounter = ({ winStreak, lossStreak }) => {
+    if (winStreak === 0 && lossStreak === 0) return null;
+    
+    const isWinStreak = winStreak > 0;
+    const streakCount = isWinStreak ? winStreak : lossStreak;
+    
+    // Calculate bonus message
+    let bonusText = '';
+    if (isWinStreak) {
+        bonusText = 'Keep it up!';
+    } else if (lossStreak >= 3) {
+        bonusText = 'Next win +10%!';
+    }
+    
+    return (
+        <motion.div
+            initial={{ scale: 0, y: -20 }}
+            animate={{ scale: 1, y: 0 }}
+            className={`fixed top-20 sm:top-24 left-1/2 -translate-x-1/2 z-50 ${
+                isWinStreak ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-red-600 to-red-700'
+            } px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-2xl border-2 ${
+                isWinStreak ? 'border-yellow-300' : 'border-red-400'
+            } animate-pulse-gold`}
+        >
+            <div className="flex items-center gap-2 sm:gap-3">
+                <span className="text-2xl sm:text-3xl">{isWinStreak ? '🔥' : '💪'}</span>
+                <div className="text-center">
+                    <div className="text-xs sm:text-sm font-black text-white">
+                        {isWinStreak ? 'WIN STREAK' : 'KEEP TRYING'}
+                    </div>
+                    <div className="text-lg sm:text-2xl font-black text-white">
+                        {streakCount}×
+                    </div>
+                </div>
+                {bonusText && (
+                    <div className="text-xs sm:text-sm font-black text-white bg-black/30 px-2 py-1 rounded-full">
+                        {bonusText}
+                    </div>
+                )}
+            </div>
+        </motion.div>
+    );
+};
+
+// --- Coin Explosion Component ---
+const CoinExplosion = ({ show, amount = 10 }) => {
+    if (!show) return null;
+    
+    const coins = Array.from({ length: Math.min(amount, 30) }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100 - 50,
+        y: -(Math.random() * 60 + 40),
+        rotation: Math.random() * 720 - 360,
+        delay: Math.random() * 0.3,
+        scale: Math.random() * 0.5 + 0.7
+    }));
+    
+    return (
+        <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
+            {coins.map((coin) => (
+                <motion.img
+                    key={coin.id}
+                    src="/coin.png"
+                    alt="coin"
+                    className="absolute w-8 h-8 sm:w-12 sm:h-12"
+                    initial={{ 
+                        x: 0, 
+                        y: 0, 
+                        opacity: 1, 
+                        scale: coin.scale,
+                        rotate: 0
+                    }}
+                    animate={{ 
+                        x: coin.x * 3, 
+                        y: coin.y * 3, 
+                        opacity: 0,
+                        rotate: coin.rotation,
+                        scale: 0
+                    }}
+                    transition={{ 
+                        duration: 1.5, 
+                        delay: coin.delay,
+                        ease: "easeOut"
+                    }}
+                />
+            ))}
+        </div>
+    );
+};
+
 // --- Main App Component ---
 export default function App() {
     const [balance, setBalance] = useState(0);
@@ -2286,6 +2421,10 @@ export default function App() {
     const [showSelection, setShowSelection] = useState(true);
     const [user, setUser] = useState(null);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [winStreak, setWinStreak] = useState(0);
+    const [lossStreak, setLossStreak] = useState(0);
+    const [showCoinExplosion, setShowCoinExplosion] = useState(false);
+    const [explosionAmount, setExplosionAmount] = useState(0);
     
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTZm6aXwsv4kJ2TZqsT8LWO-3Wqvrr3PPZYj87eWp_gQBTKEJBijJYsYRZUPWWa22B/exec';
     const LOCAL_STORAGE_KEY = 'gourmetFunUserSession';
@@ -2298,6 +2437,8 @@ export default function App() {
                 setUser(userData);
                 setBalance(userData.balance);
                 setTotalWagered(userData.totalWagered || 0);
+                setWinStreak(userData.winStreak || 0);
+                setLossStreak(userData.lossStreak || 0);
             }
         } catch (error) {
             console.error("Could not load user session:", error);
@@ -2308,18 +2449,85 @@ export default function App() {
     useEffect(() => {
         if (user) {
             try {
-                const sessionData = JSON.stringify({ ...user, balance, totalWagered });
+                const sessionData = JSON.stringify({ ...user, balance, totalWagered, winStreak, lossStreak });
                 localStorage.setItem(LOCAL_STORAGE_KEY, sessionData);
             } catch (error) {
                 console.error("Could not save user session:", error);
             }
         }
-    }, [user, balance, totalWagered]);
+    }, [user, balance, totalWagered, winStreak, lossStreak]);
+
+    // Auto-update balance from database every 5 seconds when logged in
+    useEffect(() => {
+        if (!user) return;
+        
+        const updateBalanceFromServer = async () => {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getBalance&username=${user.username}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    setBalance(data.balance);
+                }
+            } catch (err) {
+                console.error("Background balance update failed:", err);
+            }
+        };
+        
+        // Update immediately on mount
+        updateBalanceFromServer();
+        
+        // Set up interval to update every 5 seconds
+        const intervalId = setInterval(updateBalanceFromServer, 5000);
+        
+        // Cleanup interval on unmount or user logout
+        return () => clearInterval(intervalId);
+    }, [user, SCRIPT_URL]);
+
+    // Update balance from database before every bet
+    const verifyBalance = useCallback(async () => {
+        if (!user) return balance;
+        
+        try {
+            const response = await fetch(`${SCRIPT_URL}?action=getBalance&username=${user.username}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                // Always update to server value before bet
+                setBalance(data.balance);
+                return data.balance;
+            }
+            return balance;
+        } catch (err) {
+            console.error("Balance verification failed:", err);
+            return balance; // On error, use current balance
+        }
+    }, [user, balance, SCRIPT_URL]);
 
     const logGameResult = useCallback(async (game, bet, reward) => {
         if (!user) return; 
 
         setTotalWagered(prev => prev + bet);
+        
+        // Calculate streak (no bonuses)
+        const netProfit = reward - bet;
+        
+        if (netProfit > 0) {
+            // Win - increase win streak, reset loss streak
+            setWinStreak(prev => prev + 1);
+            setLossStreak(0);
+            
+            // Trigger coin explosion on win - start at 10, scale with reward
+            const coinCount = Math.floor(10 + (reward / 20)); // 10 base + scale with reward
+            setExplosionAmount(coinCount);
+            setShowCoinExplosion(true);
+            setTimeout(() => setShowCoinExplosion(false), 1500);
+            
+        } else {
+            // Loss - increase loss streak, reset win streak
+            setLossStreak(prev => prev + 1);
+            setWinStreak(0);
+        }
 
         try {
             await fetch(SCRIPT_URL, {
@@ -2330,13 +2538,15 @@ export default function App() {
                     username: user.username,
                     game,
                     bet,
-                    reward
+                    reward,
+                    winStreak: netProfit > 0 ? winStreak + 1 : 0,
+                    lossStreak: netProfit <= 0 ? lossStreak + 1 : 0
                 }),
             });
         } catch (err) {
             console.error("Failed to log game result:", err);
         }
-    }, [user]);
+    }, [user, winStreak, lossStreak, SCRIPT_URL]);
 
     const selectGame = (gameId) => {
         playSound('playButtonClick');
@@ -2360,6 +2570,8 @@ export default function App() {
         setUser(null);
         setBalance(0);
         setTotalWagered(0);
+        setWinStreak(0);
+        setLossStreak(0);
         try {
             localStorage.removeItem(LOCAL_STORAGE_KEY);
         } catch (error) {
@@ -2370,12 +2582,12 @@ export default function App() {
     const promptLogin = () => setIsAuthModalOpen(true);
 
     const gameComponents = {
-        slots: <FruitFrenzy balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
-        scratch: <SugarScratch balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
-        rocket: <IciclePop balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
-        candy: <CandyDrop balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
-        apple: <SourApple balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
-        blackjack: <Blackjack balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} />,
+        slots: <FruitFrenzy balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} verifyBalance={verifyBalance} />,
+        scratch: <SugarScratch balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} verifyBalance={verifyBalance} />,
+        rocket: <IciclePop balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} verifyBalance={verifyBalance} />,
+        candy: <CandyDrop balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} verifyBalance={verifyBalance} />,
+        apple: <SourApple balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} verifyBalance={verifyBalance} />,
+        blackjack: <Blackjack balance={balance} setBalance={setBalance} playSound={playSound} logGameResult={logGameResult} user={user} promptLogin={promptLogin} verifyBalance={verifyBalance} />,
     };
 
     const navItems = [
@@ -2397,6 +2609,9 @@ export default function App() {
                 onClose={() => setIsAuthModalOpen(false)}
                 onAuthSuccess={handleAuthSuccess}
             />
+            
+            <StreakCounter winStreak={winStreak} lossStreak={lossStreak} />
+            <CoinExplosion show={showCoinExplosion} amount={explosionAmount} />
 
             <div className="fixed inset-0 opacity-10 pointer-events-none">
                 <div className="absolute -top-40 -left-40 w-64 h-64 sm:w-96 sm:h-96 bg-violet-600 rounded-full blur-3xl animate-float"></div>
@@ -2407,7 +2622,7 @@ export default function App() {
             <header className="w-full max-w-6xl mb-4 sm:mb-6 glass-effect p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-2xl z-20 animate-slide-up">
                 <div className="flex justify-between items-center flex-wrap gap-2 sm:gap-4">
                     <div className="flex items-center gap-2 sm:gap-4">
-                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-400 to-violet-400">Gourmet</h1>
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gold-gradient animate-shimmer">Gourmet</h1>
                         {!showSelection && (
                             <motion.button 
                                 onClick={backToSelection}
@@ -2422,7 +2637,7 @@ export default function App() {
                          {user ? (
                              <>
                                 <PlayerRank totalWagered={totalWagered} />
-                                <div className="text-sm sm:text-lg md:text-2xl font-black bg-gradient-to-r from-slate-800 to-slate-900 px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-full border-2 border-amber-300/30 shadow-inner flex items-center gap-1.5 sm:gap-2 tabular-nums">
+                                <div className="text-sm sm:text-lg md:text-2xl font-black bg-premium-black px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-full border-2 border-premium-gold shadow-inner flex items-center gap-1.5 sm:gap-2 tabular-nums text-premium-gold animate-pulse-gold">
                                      <LoyaltyPointsIcon /> <AnimatedBalance value={balance} />
                                 </div>
                                 <motion.button 
@@ -2438,7 +2653,7 @@ export default function App() {
                                 whileHover={{ scale: 1.03 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setIsAuthModalOpen(true)}
-                                className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 px-4 py-2 sm:px-6 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-black shadow-lg touch-manipulation active:scale-90"
+                                className="bg-premium-gold text-black px-4 py-2 sm:px-6 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-black shadow-lg hover:shadow-2xl hover:shadow-yellow-600/50 touch-manipulation active:scale-90 transition-all"
                             >
                                 Login / Sign Up
                             </motion.button>
